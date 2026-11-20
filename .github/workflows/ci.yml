@@ -81,3 +81,50 @@ jobs:
           name: e2e-test-results
           path: test-results/
           retention-days: 14
+
+  # The files that only the server runs: they are checked here, because nothing else would until the
+  # first deploy. Docker Compose is on the runner; `config` needs no daemon and no image.
+  deploy-files:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # deploy/.env.example filled in as on the server, with the one value deploy-site writes.
+      - name: deploy/compose.yml is valid with deploy/.env.example
+        env:
+          SITE_RELEASE: 0.0.0
+        run: |
+          set -euo pipefail
+          docker compose -f deploy/compose.yml --env-file deploy/.env.example config --quiet
+          # deploy-site reads the image from here.
+          test "$(docker compose -f deploy/compose.yml --env-file deploy/.env.example config --images)" = "ghcr.io/neramsoft/bricks-site:0.0.0"
+
+      # A setting the site cannot run without must stop `compose up` with a message.
+      - name: deploy/compose.yml refuses a missing SITE_RELEASE, API_URL or SITE_URL
+        run: |
+          set -u
+          # Compose names only the first missing setting, so leave out one at a time.
+          for name in SITE_RELEASE API_URL SITE_URL; do
+            env_file="$RUNNER_TEMP/env-without-$name"
+            printf 'SITE_RELEASE=0.0.0\nAPI_URL=https://api.example.test\nSITE_URL=https://example.test\n' \
+              | grep -v "^$name=" >"$env_file"
+            if env -u SITE_RELEASE -u API_URL -u SITE_URL \
+              docker compose -f deploy/compose.yml --env-file "$env_file" config --quiet 2>"$RUNNER_TEMP/err"; then
+              echo "::error::compose.yml accepted an environment without $name"; exit 1
+            fi
+            grep -q "$name" "$RUNNER_TEMP/err" || { echo "::error::compose.yml does not name $name when it is missing"; cat "$RUNNER_TEMP/err"; exit 1; }
+          done
+
+      # The label deploy-site reads (client-site.md) and the minimum the README states are one number.
+      - name: The image's minimum CMS version matches the README
+        run: |
+          set -euo pipefail
+          docker_min="$(sed -nE 's/^ARG MIN_CMS_VERSION=([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' Dockerfile)"
+          readme_min="$(sed -nE 's/^Lowest ProBiz CMS version: ([0-9]+\.[0-9]+\.[0-9]+)\.?$/\1/p' README.md)"
+          # shellcheck disable=SC2016 # the Dockerfile's literal text, not a shell expansion
+          grep -qF 'org.probiz.min-cms-version="${MIN_CMS_VERSION}"' Dockerfile
+          test -n "$docker_min" && test "$docker_min" = "$readme_min"
+
+      - name: Lint the workflows (actionlint)
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color

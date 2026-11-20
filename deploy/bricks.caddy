@@ -1,0 +1,19 @@
+# The Bricks website's route in the CMS's Caddy (ProBiz CMS docs/runbook/client-site.md). Copy to
+# /srv/probiz/deploy/caddy-sites/bricks.caddy and run `docker compose restart caddy` there. It uses the
+# snippets of the CMS's deploy/Caddyfile (common, website_headers, upstream). {$SITE_HOST} is the
+# environment of the CMS's Caddy container: its SITE_HOST, bricks.ba.
+#
+# website_headers adds only `object-src 'none'; base-uri 'self'; frame-ancestors 'self'`, which this site
+# satisfies; it does not limit connect-src, img-src or script-src, so the browser's calls to
+# https://api.bricks.ba (table ordering), next/image and the inline JSON-LD are not blocked
+# (docs/runbook/deploy.md, "Content-Security-Policy").
+www.{$SITE_HOST} {
+	import common
+	redir https://{$SITE_HOST}{uri} permanent
+}
+
+{$SITE_HOST} {
+	import common
+	import website_headers
+	import upstream bricks-site:3000
+}
