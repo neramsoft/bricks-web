@@ -19,10 +19,7 @@ The first release: the whole of v1 (docs/decisions/0001 F1).
 - Ordering from the table at `/s/[token]`: the server-rendered menu, the basket, orders sent from the browser to the public API, live status over SSE with polling as fallback, calling the waiter, and a page for a code that is not valid (`noindex, follow`) (#5).
 - Deploy files (this release): `deploy/compose.yml` (service `bricks-site` on the CMS's edge network only, read-only root file system, no capability, memory limit), `deploy/.env.example`, `deploy/bricks.caddy`, the image labels `org.probiz.min-cms-version` and `org.opencontainers.image.version` that `deploy-site` reads, the release workflow (tag `vX.Y.Z` pushes `ghcr.io/neramsoft/bricks-site:X.Y.Z`, `X.Y` and `latest`), CI checks of the Compose file and the workflows, and `docs/runbook/deploy.md` (#6).
 
-### Fixed
-
-- `.env.example` had merge conflict markers left in the description of `PUBLIC_API_URL`.
-
 ### Changed
 
+- `.env.example` describes both uses of `PUBLIC_API_URL`: table ordering and the events' calendar link.
 - The image's start-up wrapper keeps the patched `server.js` in memory instead of writing `server.runtime.mjs` beside it, so the container can run with a read-only root file system.
