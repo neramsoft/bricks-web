@@ -1,0 +1,14 @@
+# Settings for pnpm 11 (single package, not a monorepo).
+
+# Packages allowed to run install scripts; anything not listed is denied.
+allowBuilds:
+  # Image optimiser of next/image: selects its prebuilt libvips binary. No network access.
+  sharp: true
+  # Standard napi-rs postinstall of the ESLint resolver: selects the prebuilt native binary.
+  unrs-resolver: true
+
+# The CMS packages were published within the default release-age window; this exempts exactly
+# those versions, not the packages as a whole.
+minimumReleaseAgeExclude:
+  - "@neramsoft/probiz-blocks@1.0.0"
+  - "@neramsoft/probiz-sdk@1.0.0"
