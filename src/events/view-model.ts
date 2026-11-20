@@ -1,5 +1,5 @@
 import type { ApiComponents } from "@probiz/sdk";
-import { clock, fill, formatMoney, weekdayIn } from "@/lib/format";
+import { clock, dayInZone, dayMonth, fill, formatMoney, weekdayIn } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
 
 export type EventSummary = ApiComponents["schemas"]["PublicEventSummary"];
@@ -35,15 +35,50 @@ export function dateTile(
   };
 }
 
-/** "petak, 21:00" (an all-day event: "petak, cijeli dan"). */
-export function whenText(
-  event: Pick<EventSummary, "startsAt" | "allDay">,
+/**
+ * The hours of an event: "21:00–23:00", or "21:00" with no end. An end on a later day of the
+ * venue's clock (a night that runs past midnight) names that day: "21:00–sub 01:00", so the range
+ * is never read as ending before it starts. An all-day event has no hours.
+ */
+export function timeRange(
+  event: Pick<EventSummary, "startsAt" | "endsAt" | "allDay">,
   timeZone: string,
   locale: string,
   messages: Messages["events"],
 ): string {
-  const day = weekdayIn(event.startsAt, timeZone, locale);
-  return `${day}, ${event.allDay ? messages.allDay : clock(event.startsAt, timeZone, locale)}`;
+  if (event.allDay) return messages.allDay;
+  const start = clock(event.startsAt, timeZone, locale);
+  if (!event.endsAt) return start;
+  const end = clock(event.endsAt, timeZone, locale);
+  if (dayInZone(event.endsAt, timeZone) === dayInZone(event.startsAt, timeZone)) {
+    return `${start}\u2013${end}`;
+  }
+  return `${start}\u2013${weekdayIn(event.endsAt, timeZone, locale, "short")} ${end}`;
+}
+
+/** "petak, 21. novembra": the weekday, the day and the month, as the wide card's "Kad" begins. */
+export function dayText(startsAt: string, timeZone: string, locale: string): string {
+  return `${weekdayIn(startsAt, timeZone, locale)}, ${dayMonth(startsAt, timeZone, locale)}`;
+}
+
+/** "petak, 21:00\u201323:00": the weekday and the hours, a row's first words. */
+export function rowWhenText(
+  event: Pick<EventSummary, "startsAt" | "endsAt" | "allDay">,
+  timeZone: string,
+  locale: string,
+  messages: Messages["events"],
+): string {
+  return `${weekdayIn(event.startsAt, timeZone, locale)}, ${timeRange(event, timeZone, locale, messages)}`;
+}
+
+/** The wide card's "Kad": "petak, 21. novembra · 21:00–23:00". */
+export function fullWhenText(
+  event: Pick<EventSummary, "startsAt" | "endsAt" | "allDay">,
+  timeZone: string,
+  locale: string,
+  messages: Messages["events"],
+): string {
+  return `${dayText(event.startsAt, timeZone, locale)} \u00b7 ${timeRange(event, timeZone, locale, messages)}`;
 }
 
 /** The price as the page says it; null for a price that needs an amount and has none (nothing is better than a wrong price). */
@@ -64,6 +99,15 @@ export function priceText(
         ? null
         : fill(messages.priceFrom, { amount: formatMoney(event.price, event.currency, locale) });
   }
+}
+
+/** The price as the "Ulaz" line and the rows say it: free is "Bez ulaza", the rest as `priceText`. */
+export function entryText(
+  event: Pick<EventSummary, "priceType" | "price" | "currency">,
+  locale: string,
+  messages: Messages["events"],
+): string | null {
+  return event.priceType === "FREE" ? messages.freeEntry : priceText(event, locale, messages);
 }
 
 /** The place on one line: its name, then the address when it has one. */
@@ -91,9 +135,27 @@ export function badgesOf(event: EventSummary, messages: Messages["events"]): str
   return list;
 }
 
-/** The index of the event the list draws wide: the first featured one that is on; -1 for none. */
-export function featuredIndex(events: readonly EventSummary[]): number {
-  return events.findIndex(
-    (event) => event.featured && event.eventStatus === "SCHEDULED" && !event.ended,
-  );
+/**
+ * The next event is the featured one, whatever the CMS's `featured` flag says: the first event
+ * that is not over, in the order the CMS lists them (soonest first). The rest follow as rows. With
+ * every event over there is no wide card and all of them are rows.
+ */
+export function splitEvents<T extends Pick<EventSummary, "ended">>(
+  events: readonly T[],
+): { first: T | null; rest: T[] } {
+  const index = events.findIndex((event) => !event.ended);
+  if (index === -1) return { first: null, rest: [...events] };
+  return { first: events[index]!, rest: events.filter((_, i) => i !== index) };
+}
+
+/** The calendar file of an event, on the CMS's public address (a normal link, no data address). */
+export function icsUrl(publicApiUrl: string, id: string): string {
+  return `${publicApiUrl.replace(/\/+$/, "")}/v1/public/events/${encodeURIComponent(id)}/ics`;
+}
+
+/** The slug of an event's own page (the last part of its `href`); null for an event without one. */
+export function slugOfHref(href: string | null): string | null {
+  if (!href) return null;
+  const last = href.split(/[?#]/)[0]!.split("/").filter(Boolean).pop();
+  return last ? decodeURIComponent(last) : null;
 }

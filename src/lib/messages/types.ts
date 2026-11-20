@@ -112,6 +112,15 @@ export interface Messages {
     priceFrom: string;
     priceOnRequest: string;
     statuses: Record<"CANCELLED" | "POSTPONED" | "RESCHEDULED" | "ENDED", string>;
+    upNext: string;
+    after: string;
+    when: string;
+    where: string;
+    entry: string;
+    performers: string;
+    freeEntry: string;
+    reserve: string;
+    addToCalendar: string;
     viewEvent: string;
     featured: string;
     registrationOpen: string;

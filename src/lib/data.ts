@@ -1,12 +1,14 @@
 import "server-only";
 import { cache } from "react";
 import {
+  type ApiComponents,
   getEnabledModules,
   getForm,
   getMenus,
   getPage,
   getSite,
   isProbizApiError,
+  unwrap,
   type PublicForm,
   type PublicMenus,
   type PublicPage,
@@ -61,6 +63,25 @@ export const getFormData = cache(async (id: string): Promise<PublicForm | null> 
     throw error;
   }
 });
+
+/**
+ * The full record of an event with a page of its own, by slug; null when it cannot be read (the
+ * card then leaves out what only the full record has: the performers). Tagged `module:events`
+ * and `module:team` by `tagsForRequest`, so the webhook refreshes it.
+ */
+export const getEventData = cache(
+  async (slug: string, locale: string): Promise<ApiComponents["schemas"]["PublicEvent"] | null> => {
+    try {
+      return unwrap(
+        await cms().rest.GET("/v1/public/events/by-slug/{slug}", {
+          params: { path: { slug }, query: { locale } },
+        }),
+      );
+    } catch {
+      return null;
+    }
+  },
+);
 
 /** The draft behind a preview token; null for a token that is expired, wrong, or for another page. */
 export async function getPreviewPage(

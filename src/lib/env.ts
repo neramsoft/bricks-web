@@ -20,7 +20,8 @@ const schema = z.object({
   REVALIDATE_SECRET: z.string().min(1).optional(),
   /**
    * The CMS API's address as the visitor's browser reaches it (`https://api.bricks.ba`), where the
-   * table-ordering page sends orders from the browser (docs/decisions/0003). Read on the server
+   * table-ordering page sends orders from the browser (docs/decisions/0003) and where an event's
+   * calendar file is linked. Read on the server
    * and handed to the page as a prop, never `NEXT_PUBLIC`, so one image serves any install.
    * Defaults to `API_URL`.
    */

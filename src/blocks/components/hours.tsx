@@ -1,5 +1,5 @@
 import type { ApiComponents } from "@probiz/sdk";
-import { fill, weekdayName, weekdayOf } from "@/lib/format";
+import { dayMonth, fill, weekdayName, weekdayOf } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
 
 type Hours = ApiComponents["schemas"]["PublicOpeningHours"];
@@ -14,12 +14,7 @@ export const intervalsText = (intervals: readonly Interval[], messages: Messages
 function formatDay(value: string, locale: string): string {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00Z`) : new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(date);
+  return dayMonth(date, "UTC", locale, true);
 }
 
 /** The week's opening hours, today in amber, then the exceptions. Shared by the hours block and the contact details. */
