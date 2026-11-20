@@ -27,7 +27,7 @@ pnpm install
 
 ## Settings
 
-Copy `.env.example` to `.env.local`. `API_URL` and `SITE_URL` are required in production; the other settings are optional. Each is documented in `.env.example`.
+Copy `.env.example` to `.env.local`. `API_URL` and `SITE_URL` are required in production; the other settings are optional. `PUBLIC_API_URL` (default `API_URL`) is the API address the guest's browser reaches, used by table ordering. Each is documented in `.env.example`.
 
 ## Commands
 

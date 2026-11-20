@@ -44,6 +44,7 @@ export default defineConfig({
       timeout: 60_000,
       env: {
         API_URL: api,
+        PUBLIC_API_URL: api,
         SITE_URL: web,
         MEDIA_PUBLIC_URL: api,
         REVALIDATE_SECRET: "whsec_playwright_fixture_secret",

@@ -54,3 +54,18 @@ export async function jsonLd(page: Page): Promise<Array<Record<string, unknown>>
 
 export const typesOf = (node: Record<string, unknown>): string[] =>
   ([] as unknown[]).concat(node["@type"]).map(String);
+
+/**
+ * The viewport at 1440 x 900 and at 390 x 844 (not the whole page: for fixed sheets, bars and
+ * toasts), saved under test-results/screenshots and attached to the test.
+ */
+export async function viewportShots(page: Page, testInfo: TestInfo, name: string): Promise<void> {
+  const before = page.viewportSize();
+  for (const size of SIZES) {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    const path = `test-results/screenshots/${name}-${size.name}.png`;
+    await page.screenshot({ path });
+    await testInfo.attach(`${name}-${size.name}`, { path, contentType: "image/png" });
+  }
+  if (before) await page.setViewportSize(before);
+}

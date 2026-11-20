@@ -7,7 +7,7 @@
 # read:packages. It is passed as a BuildKit secret (never a build argument) and exists only for
 # the install command: no layer holds it. Nothing else secret is needed to build, and nothing
 # install-specific is baked in: the settings are read from the environment when the server runs
-# (.env.example): API_URL and SITE_URL (required), REVALIDATE_SECRET, MEDIA_PUBLIC_URL,
+# (.env.example): API_URL and SITE_URL (required), REVALIDATE_SECRET, PUBLIC_API_URL, MEDIA_PUBLIC_URL,
 # TRUSTED_PROXY_HOPS. The one thing Next fixes at build time that depends on them, the hosts
 # next/image may fetch media from, is replaced when the container starts (docker/web-server.mjs).
 

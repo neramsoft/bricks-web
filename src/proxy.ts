@@ -3,6 +3,7 @@ import { goneHtml } from "@/lib/gone-page";
 import { localizedHref, splitPathname } from "@/lib/locale";
 import { messagesFor } from "@/lib/messages";
 import { classify, localeSet } from "@/lib/proxy-decision";
+import { isUnknownTable, tokenOf } from "@/ordering/table-check";
 
 // The proxy answers what a cached page render can't: a CMS redirect (301, 302), a gone address
 // (410) and a missing one (a real 404 from /missing, which reports the visit to the CMS's 404
@@ -17,6 +18,21 @@ export async function proxy(request: NextRequest) {
   headers.set("x-site-path", request.nextUrl.pathname);
   const pass = () => NextResponse.next({ request: { headers } });
   if (request.method !== "GET" && request.method !== "HEAD") return pass();
+
+  // A table's page (/s/<token>) is the app's own: the CMS has no page, redirect or 410 there. Its
+  // layout cannot read the query string, so it is handed over for the `lang` of <html>.
+  if (request.nextUrl.pathname.startsWith("/s/")) {
+    headers.set("x-site-search", request.nextUrl.search);
+    // An unknown code is answered here: a dynamic page cannot give a 404 status and its own body.
+    const token = tokenOf(request.nextUrl.pathname);
+    if (token && (await isUnknownTable(token))) {
+      headers.set("x-order-invalid", "1");
+      const target = new URL(`/~order-invalid/${encodeURIComponent(token)}`, request.url);
+      target.search = request.nextUrl.search;
+      return NextResponse.rewrite(target, { request: { headers }, status: 404 });
+    }
+    return pass();
+  }
 
   try {
     const verdict = await classify(request.nextUrl);
@@ -63,6 +79,6 @@ export const config = {
   // post, robots.txt, sitemap.xml and anything with a file extension. Add a route outside the catch-all here (and to
   // lib/reserved-paths.ts).
   matcher: [
-    "/((?!_next/|api/|preview/|preview$|missing/|missing$|~form|robots\\.txt|sitemap\\.xml|.*\\..*).*)",
+    "/((?!_next/|api/|preview/|preview$|missing/|missing$|~form|~order-invalid|robots\\.txt|sitemap\\.xml|.*\\..*).*)",
   ],
 };

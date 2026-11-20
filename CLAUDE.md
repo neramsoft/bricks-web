@@ -10,11 +10,12 @@ This repository is the public website of **Bricks**, a café-bar in Tuzla (`bric
 
 ```
 src/app/              Next.js (App Router): [[...route]] (CMS pages, ISR), missing (404), preview, robots.txt, sitemap.xml, api/health, api/revalidate
-src/proxy.ts          Redirects (301/302), gone (410), unknown address to /missing (404)
+src/proxy.ts          Redirects (301/302), gone (410), unknown address to /missing (404), unknown table code to /~order-invalid (404)
 src/lib/              env, api (cms, cmsUncached), data, tags, revalidation, locale, messages, page-metadata, jsonld, breadcrumbs, proxy state
 src/blocks/           Block check (parse.ts), registry (blocks.tsx), typed data (types.ts), one component per block type (components/)
 src/components/       Header, footer, phone bar, breadcrumbs, JSON-LD, page view, 404 view
 src/{menu,events,locations,forms}/  View-models, JSON-LD, search and form handling of the blocks that need them
+src/ordering/         Table ordering (/s/[token], docs/decisions/0003): cart, errors, guest API client, SSE reader, order watcher, secrets, client island
 src/styles/           Tokens and the theme's stylesheets (tokens.css is the prototype's)
 src/fonts/            The brand fonts (next/font/local, lib/fonts.ts)
 e2e/                  Playwright specs; e2e/support/ is the fake CMS API (api-fixture.ts) and its typed fixtures
