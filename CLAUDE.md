@@ -12,8 +12,12 @@ This repository is the public website of **Bricks**, a café-bar in Tuzla (`bric
 src/app/              Next.js (App Router): [[...route]] (CMS pages, ISR), missing (404), preview, robots.txt, sitemap.xml, api/health, api/revalidate
 src/proxy.ts          Redirects (301/302), gone (410), unknown address to /missing (404)
 src/lib/              env, api (cms, cmsUncached), data, tags, revalidation, locale, messages, page-metadata, jsonld, breadcrumbs, proxy state
-src/blocks/           Block check (parse.ts) and registry (blocks.tsx)
-src/components/       Header, footer, breadcrumbs, JSON-LD, page view
+src/blocks/           Block check (parse.ts), registry (blocks.tsx), typed data (types.ts), one component per block type (components/)
+src/components/       Header, footer, phone bar, breadcrumbs, JSON-LD, page view, 404 view
+src/{menu,events,locations,forms}/  View-models, JSON-LD, search and form handling of the blocks that need them
+src/styles/           Tokens and the theme's stylesheets (tokens.css is the prototype's)
+src/fonts/            The brand fonts (next/font/local, lib/fonts.ts)
+e2e/                  Playwright specs; e2e/support/ is the fake CMS API (api-fixture.ts) and its typed fixtures
 test/fixtures/        Typed API answers (ApiComponents) shared by the unit tests
 docker/web-server.mjs Start-up wrapper of the image: sets next/image's media hosts from the environment
 Dockerfile            Standalone image (BuildKit secret `npm_token` for the SDK install)
@@ -29,6 +33,7 @@ Tooling: pnpm 11 (single package, not a monorepo), Node 24 (`.nvmrc`), Next 16, 
 
 - `pnpm dev`: the site on http://localhost:3000 (needs the CMS API; settings in `.env.example`)
 - `pnpm lint` / `pnpm typecheck` / `pnpm test` / `pnpm build`
+- `pnpm test:e2e`: Playwright against the built site and the fixture API (ports 4010 and 4011; `pnpm build` first; screenshots at 1440 and 390 px in `test-results/screenshots`). Set `PLAYWRIGHT_CHROMIUM_PATH` where the browser was not installed with `pnpm exec playwright install chromium`
 - `pnpm format` / `pnpm format:check`
 - `NPM_TOKEN=... pnpm install`: the SDK is a private package on GitHub Packages (see `README.md`); the token is never written to a file
 - `docker build --secret id=npm_token,env=NPM_TOKEN -t bricks-site .`: the image
@@ -74,7 +79,7 @@ Tooling: pnpm 11 (single package, not a monorepo), Node 24 (`.nvmrc`), Next 16, 
 
 1. For each feature, start in plan mode: propose the approach, files and tests, then wait for approval before changing files.
 2. Keep PRs small: one feature or one screen per PR.
-3. Screens and pages get a Playwright test with screenshots at 1440 px and 390 px (not set up yet: it comes with `feature/theme-and-blocks`, against a fixture API, docs/decisions/0001 F8).
+3. Screens and pages get a Playwright test with screenshots at 1440 px and 390 px (against a fixture API, docs/decisions/0001 F8, `pnpm test:e2e`).
 4. Run `pnpm lint`, `pnpm typecheck` and `pnpm test` (and `pnpm build`) before saying a task is done.
 5. If a decision isn't covered here or in `docs/decisions/`, ask instead of guessing: recommend an option, then record the answer in `docs/decisions/`.
 6. If a page needs data the API does not give, describe the gap as a proposed CMS change instead of working around it in the theme.
