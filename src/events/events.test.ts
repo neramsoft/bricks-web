@@ -96,10 +96,10 @@ describe("timeRange and the when lines", () => {
     const e = event({ endsAt: "2026-11-20T22:00:00.000Z" });
     expect(rowWhenText(e, zone, "bs", bs.events)).toBe("petak, 21:00\u201323:00");
     expect(fullWhenText(e, zone, "bs", bs.events)).toBe(
-      "petak, 20. novembar \u00b7 21:00\u201323:00",
+      "petak, 20. novembra \u00b7 21:00\u201323:00",
     );
     expect(fullWhenText(e, zone, "en", en.events)).toBe(
-      "Friday, November 20 \u00b7 21:00\u201323:00",
+      "Friday, 20 November \u00b7 21:00\u201323:00",
     );
   });
 });

@@ -68,6 +68,60 @@ export function dayInZone(instant: Date | string, timeZone: string): string {
   return zoned(instant, timeZone, { year: "numeric", month: "2-digit", day: "2-digit" })("en-CA");
 }
 
+const BS_MONTHS_GENITIVE = [
+  "januara",
+  "februara",
+  "marta",
+  "aprila",
+  "maja",
+  "juna",
+  "jula",
+  "augusta",
+  "septembra",
+  "oktobra",
+  "novembra",
+  "decembra",
+] as const;
+
+/**
+ * A date with its day number and the month in full: "21. novembra" / "21. novembra 2026." in
+ * Bosnian (the genitive, which CLDR's nominative is not), "21 November" / "21 November 2026" in
+ * English, and what Intl gives for any other language.
+ */
+export function dayMonth(
+  instant: Date | string,
+  timeZone: string,
+  locale: string,
+  withYear = false,
+): string {
+  const language = locale.toLowerCase().split("-")[0];
+  const options: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "long",
+    ...(withYear ? { year: "numeric" } : {}),
+  };
+  if (language !== "bs" && language !== "en") return zoned(instant, timeZone, options)(locale);
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: validZone(timeZone),
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    })
+      .formatToParts(typeof instant === "string" ? new Date(instant) : instant)
+      .map((p) => [p.type, p.value]),
+  );
+  const day = parts.day;
+  const monthIndex = Number(parts.month) - 1;
+  if (language === "bs") {
+    return `${day}. ${BS_MONTHS_GENITIVE[monthIndex]}${withYear ? ` ${parts.year}.` : ""}`;
+  }
+  const month = new Intl.DateTimeFormat("en", { month: "long", timeZone: "UTC" }).format(
+    new Date(Date.UTC(2024, monthIndex, 1)),
+  );
+  return `${day} ${month}${withYear ? ` ${parts.year}` : ""}`;
+}
+
 /** "18:00": 24-hour in every language of the site. */
 export function clock(instant: Date | string, timeZone: string, locale: string): string {
   return zoned(instant, timeZone, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })(locale);
@@ -108,6 +162,15 @@ export function isoInZone(instant: string, timeZone: string): string {
     return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}${offset}`;
   } catch {
     return date.toISOString().replace(/\.\d{3}Z$/, "+00:00");
+  }
+}
+
+function validZone(timeZone: string): string {
+  try {
+    new Intl.DateTimeFormat("en", { timeZone });
+    return timeZone;
+  } catch {
+    return "UTC";
   }
 }
 

@@ -1,5 +1,5 @@
 import type { ApiComponents } from "@probiz/sdk";
-import { clock, dayInZone, fill, formatMoney, weekdayIn } from "@/lib/format";
+import { clock, dayInZone, dayMonth, fill, formatMoney, weekdayIn } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
 
 export type EventSummary = ApiComponents["schemas"]["PublicEventSummary"];
@@ -56,10 +56,9 @@ export function timeRange(
   return `${start}\u2013${weekdayIn(event.endsAt, timeZone, locale, "short")} ${end}`;
 }
 
-/** "petak, 21. novembar": the weekday, the day and the month, as the wide card's "Kad" begins. */
+/** "petak, 21. novembra": the weekday, the day and the month, as the wide card's "Kad" begins. */
 export function dayText(startsAt: string, timeZone: string, locale: string): string {
-  const day = part(startsAt, timeZone, locale, { day: "numeric", month: "long" });
-  return `${weekdayIn(startsAt, timeZone, locale)}, ${day}`;
+  return `${weekdayIn(startsAt, timeZone, locale)}, ${dayMonth(startsAt, timeZone, locale)}`;
 }
 
 /** "petak, 21:00\u201323:00": the weekday and the hours, a row's first words. */
@@ -72,7 +71,7 @@ export function rowWhenText(
   return `${weekdayIn(event.startsAt, timeZone, locale)}, ${timeRange(event, timeZone, locale, messages)}`;
 }
 
-/** The wide card's "Kad": "petak, 21. novembar · 21:00–23:00". */
+/** The wide card's "Kad": "petak, 21. novembra · 21:00–23:00". */
 export function fullWhenText(
   event: Pick<EventSummary, "startsAt" | "endsAt" | "allDay">,
   timeZone: string,
