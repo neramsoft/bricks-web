@@ -9,8 +9,12 @@ This repository is the public website of **Bricks**, a café-bar in Tuzla (`bric
 ## Layout
 
 ```
-src/app/              Next.js (App Router): layout, pages, route handlers (api/health)
-src/lib/              env.ts (zod-validated settings), media-hosts.ts, server-patch.ts
+src/app/              Next.js (App Router): [[...route]] (CMS pages, ISR), missing (404), preview, robots.txt, sitemap.xml, api/health, api/revalidate
+src/proxy.ts          Redirects (301/302), gone (410), unknown address to /missing (404)
+src/lib/              env, api (cms, cmsUncached), data, tags, revalidation, locale, messages, page-metadata, jsonld, breadcrumbs, proxy state
+src/blocks/           Block check (parse.ts) and registry (blocks.tsx)
+src/components/       Header, footer, breadcrumbs, JSON-LD, page view
+test/fixtures/        Typed API answers (ApiComponents) shared by the unit tests
 docker/web-server.mjs Start-up wrapper of the image: sets next/image's media hosts from the environment
 Dockerfile            Standalone image (BuildKit secret `npm_token` for the SDK install)
 .github/workflows/    CI
@@ -70,7 +74,7 @@ Tooling: pnpm 11 (single package, not a monorepo), Node 24 (`.nvmrc`), Next 16, 
 
 1. For each feature, start in plan mode: propose the approach, files and tests, then wait for approval before changing files.
 2. Keep PRs small: one feature or one screen per PR.
-3. Screens and pages get a Playwright test with screenshots at 1440 px and 390 px.
+3. Screens and pages get a Playwright test with screenshots at 1440 px and 390 px (not set up yet: it comes with `feature/theme-and-blocks`, against a fixture API, docs/decisions/0001 F8).
 4. Run `pnpm lint`, `pnpm typecheck` and `pnpm test` (and `pnpm build`) before saying a task is done.
 5. If a decision isn't covered here or in `docs/decisions/`, ask instead of guessing: recommend an option, then record the answer in `docs/decisions/`.
 6. If a page needs data the API does not give, describe the gap as a proposed CMS change instead of working around it in the theme.
