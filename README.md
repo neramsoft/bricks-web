@@ -43,13 +43,17 @@ Copy `.env.example` to `.env.local`. `API_URL` and `SITE_URL` are required in pr
 ## Docker image
 
 ```
-docker build --secret id=npm_token,env=NPM_TOKEN --build-arg SITE_VERSION=0.1.0 \
-  -t ghcr.io/neramsoft/bricks-site:0.1.0 .
+docker build --secret id=npm_token,env=NPM_TOKEN --build-arg SITE_VERSION=1.0.0 \
+  -t ghcr.io/neramsoft/bricks-site:1.0.0 .
 docker run --rm -p 3000:3000 -e API_URL=https://api.bricks.ba -e SITE_URL=https://bricks.ba \
-  ghcr.io/neramsoft/bricks-site:0.1.0
+  ghcr.io/neramsoft/bricks-site:1.0.0
 ```
 
-The token is a BuildKit secret: it is used for the install only and stays out of every layer. The health check is `/api/health`.
+The token is a BuildKit secret: it is used for the install only and stays out of every layer. The health check is `/api/health`. The image carries the label `org.probiz.min-cms-version` (the build argument `MIN_CMS_VERSION`, default the lowest CMS version above), which the server's `deploy-site` reads.
+
+## Deploy and releases
+
+A tag `vX.Y.Z` on `master` builds and pushes the image (`.github/workflows/release.yml`); the server deploys it with `deploy-site`. `deploy/` holds the files the server needs. Everything, from the first deploy to rollback, is in [`docs/runbook/deploy.md`](docs/runbook/deploy.md); changes are in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Branches
 

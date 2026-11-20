@@ -5,13 +5,13 @@
 // builds, but they depend on API_URL and MEDIA_PUBLIC_URL, which differ between staging,
 // production and every other install. So the build's values are ignored: the hosts are worked
 // out here, from the environment of the running container, by the function next.config.ts uses
-// (media-hosts.ts, copied into the image), and written into a copy of server.js that is then
-// started. Nothing else of Next's configuration is touched.
-import { readFileSync, writeFileSync } from "node:fs";
+// (media-hosts.ts, copied into the image), and put into a copy of server.js that is then started
+// from memory. Nothing else of Next's configuration is touched, and nothing is written to disk.
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { allowLocalImages, mediaHosts } from "./media-hosts.ts";
-import { patchServerSource } from "./server-patch.ts";
+import { patchServerSource, pinModuleUrl } from "./server-patch.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -43,11 +43,15 @@ console.log(
   `website: next/image may fetch from ${hosts.map((h) => `${h.protocol}://${h.hostname}${h.port ? `:${h.port}` : ""}`).join(", ") || "no host"}`,
 );
 
-// Beside server.js, so its relative paths and `require("next")` resolve as they do for the original.
-const target = path.join(here, "server.runtime.mjs");
+// Run from memory, not from a file: the root file system of the container is read-only (the
+// image has no writable place beside server.js). The module is ESM and finds `next` and its own
+// folder through import.meta.url, so that is replaced by server.js's real address, and the text
+// is imported as a data: URL (it imports only node: modules).
+const serverUrl = pathToFileURL(path.join(here, "server.js")).href;
+let source;
 try {
-  writeFileSync(target, patched);
+  source = pinModuleUrl(patched, serverUrl);
 } catch (error) {
-  stop(`cannot write ${target}: ${error.message}`);
+  stop(error.message);
 }
-await import(pathToFileURL(target).href);
+await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);

@@ -21,9 +21,12 @@ src/fonts/            The brand fonts (next/font/local, lib/fonts.ts)
 e2e/                  Playwright specs; e2e/support/ is the fake CMS API (api-fixture.ts) and its typed fixtures
 test/fixtures/        Typed API answers (ApiComponents) shared by the unit tests
 docker/web-server.mjs Start-up wrapper of the image: sets next/image's media hosts from the environment
-Dockerfile            Standalone image (BuildKit secret `npm_token` for the SDK install)
-.github/workflows/    CI
+Dockerfile            Standalone image (BuildKit secret `npm_token` for the SDK install; labels `org.probiz.min-cms-version` and the version)
+deploy/               What goes to the server: compose.yml, .env.example, bricks.caddy (copied by hand, docs/runbook/deploy.md)
+.github/workflows/    CI (ci.yml) and the image release on a tag (release.yml)
 docs/decisions/       Decision records
+docs/runbook/         Runbooks (deploy.md)
+CHANGELOG.md          One section per release; the release PR adds it
 .claude/agents/       Subagent: website-developer
 public/               Static files
 ```
@@ -38,6 +41,7 @@ Tooling: pnpm 11 (single package, not a monorepo), Node 24 (`.nvmrc`), Next 16, 
 - `pnpm format` / `pnpm format:check`
 - `NPM_TOKEN=... pnpm install`: the SDK is a private package on GitHub Packages (see `README.md`); the token is never written to a file
 - `docker build --secret id=npm_token,env=NPM_TOKEN -t bricks-site .`: the image
+- `docker compose -f deploy/compose.yml --env-file deploy/.env.example config` (with `SITE_RELEASE` set): checks the server's Compose file; CI does it
 
 ## Non-negotiable rules
 
@@ -71,7 +75,7 @@ Tooling: pnpm 11 (single package, not a monorepo), Node 24 (`.nvmrc`), Next 16, 
 
 - Branch names: `feature/<feature-name>` for new work, `fix/<what-the-fix-is-about>` for fixes, `hotfix/<what-the-fix-is-about>` for urgent production fixes. Lowercase, words joined by hyphens. No other prefixes.
 - `feature/*` and `fix/*` branch from `development` and merge back by PR (squash).
-- `development` → `master` by release PR (merge commit). A tag `vX.Y.Z` on `master` builds the image.
+- `development` → `master` by release PR (merge commit; it raises `package.json`'s version and adds the `CHANGELOG.md` section). A tag `vX.Y.Z` on `master` builds the image and pushes it to `ghcr.io/neramsoft/bricks-site` (docs/runbook/deploy.md).
 - `hotfix/*` branch from `master`, merge to `master`, then back into `development`.
 - Conventional commit messages and PR titles (`feat:`, `fix:`, `chore:`, `docs:`).
 - **Commits are authored by the project owner only.** No `Co-Authored-By`, session links or other attribution trailers in commits, and no attribution footer in PR descriptions.

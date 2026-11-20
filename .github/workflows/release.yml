@@ -1,0 +1,222 @@
+name: Release
+
+# A tag vX.Y.Z on `master` builds the website image and pushes it to GitHub Container Registry as
+# ghcr.io/neramsoft/bricks-site:X.Y.Z, :X.Y and :latest (docs/runbook/deploy.md). The server pulls it
+# with `deploy-site bricks X.Y.Z` (ProBiz CMS docs/runbook/client-site.md). Nothing is deployed from
+# here: GitHub does not log in to the server.
+#
+# By hand (Actions tab): "dry_run: true" (the default) builds the image and runs it, and pushes
+# nothing. A real run by hand is possible only on a tag, never on a branch.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: build and test the image only. Nothing is pushed"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/neramsoft/bricks-site
+
+jobs:
+  # Is this tag a release? On master, equal to package.json's version, with its CHANGELOG section.
+  # In a dry run the three are warnings, so the build can be tried from any branch.
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      dry_run: ${{ steps.check.outputs.dry_run }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+
+      - name: The tag is a release
+        id: check
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          DRY_INPUT: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          dry=false
+          if [ "$EVENT" = workflow_dispatch ]; then
+            if [ "$DRY_INPUT" = true ]; then dry=true; fi
+            if [ "$REF_TYPE" != tag ]; then
+              dry=true
+              echo "::notice::A real release can only run on a tag; this run is a dry run."
+            fi
+          fi
+
+          package_version="$(node -p "require('./package.json').version")"
+          version="$package_version"
+          problems=0
+          problem() {
+            if [ "$dry" = true ]; then echo "::warning::$1"; else echo "::error::$1"; problems=1; fi
+          }
+
+          if [ "$REF_TYPE" = tag ]; then
+            case "$REF_NAME" in
+              v[0-9]*.[0-9]*.[0-9]*) version="${REF_NAME#v}" ;;
+              *) problem "The tag $REF_NAME is not vX.Y.Z" ;;
+            esac
+            if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              problem "The tag $REF_NAME is not vX.Y.Z (digits only: deploy-site accepts nothing else)"
+              version="$package_version"
+            fi
+            if [ "$version" != "$package_version" ]; then
+              problem "The tag is $version but package.json says $package_version"
+            fi
+            git fetch --quiet origin master
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+              problem "The tag's commit is not on master (merge the release PR first, then tag master)"
+            fi
+          fi
+
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            problem "package.json's version $version is not X.Y.Z"
+            version=0.0.0-dev
+          fi
+          if ! grep -Eq "^## \[$version\]" CHANGELOG.md; then
+            problem "CHANGELOG.md has no section '## [$version]'"
+          fi
+
+          if [ "$problems" != 0 ]; then exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dry_run=$dry" >> "$GITHUB_OUTPUT"
+          echo "version: $version, dry run: $dry"
+
+  image:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      # Pushes the image, and reads the SDK (a private package: this repository needs Read access
+      # to @neramsoft/probiz-sdk and @neramsoft/probiz-blocks, each package's Manage Actions access).
+      packages: write
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      DRY_RUN: ${{ needs.prepare.outputs.dry_run }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Image tags
+        id: tags
+        run: |
+          set -euo pipefail
+          minor="${VERSION%.*}"
+          {
+            echo "list<<EOF"
+            echo "$IMAGE:$VERSION"
+            echo "$IMAGE:$minor"
+            echo "$IMAGE:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        if: ${{ env.DRY_RUN != 'true' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # One platform, no provenance or SBOM attestations (as the CMS's release: they would leave
+      # untagged versions behind). The token is a BuildKit secret: it is there for the install
+      # command only and no layer holds it (Dockerfile).
+      - name: Build the image
+        id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          platforms: linux/amd64
+          push: ${{ env.DRY_RUN != 'true' }}
+          load: ${{ env.DRY_RUN == 'true' }}
+          provenance: false
+          sbom: false
+          tags: ${{ env.DRY_RUN == 'true' && 'bricks-site:release-dry-run' || steps.tags.outputs.list }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            SITE_VERSION=${{ env.VERSION }}
+          secrets: |
+            npm_token=${{ secrets.GITHUB_TOKEN }}
+          cache-from: type=gha,scope=site
+          cache-to: type=gha,scope=site,mode=max
+
+      # What was built (a dry run) or pushed (a real run, pulled back by digest) must carry what
+      # deploy-site needs, run as a user other than root, and start with the read-only root file
+      # system and the tmpfs mounts of deploy/compose.yml.
+      - name: The image carries its labels and starts
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [ "$DRY_RUN" = true ]; then
+            image=bricks-site:release-dry-run
+          else
+            if [ -z "$DIGEST" ]; then echo "::error::The registry returned no image digest"; exit 1; fi
+            image="$IMAGE@$DIGEST"
+            docker pull --quiet "$image" >/dev/null
+          fi
+          label() { docker image inspect --format "{{index .Config.Labels \"$1\"}}" "$image"; }
+          fail=0
+          min="$(label org.probiz.min-cms-version)"
+          if ! printf '%s' "$min" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::The image's org.probiz.min-cms-version is '$min', not X.Y.Z"; fail=1
+          fi
+          [ "$(label org.opencontainers.image.version)" = "$VERSION" ] \
+            || { echo "::error::The image's org.opencontainers.image.version is not $VERSION"; fail=1; }
+          user="$(docker image inspect --format '{{.Config.User}}' "$image")"
+          if [ -z "$user" ] || [ "$user" = root ] || [ "$user" = 0 ]; then
+            echo "::error::The image runs as root"; fail=1
+          fi
+          [ "$fail" = 0 ] || exit 1
+
+          docker run -d --name site --read-only \
+            --tmpfs /app/.next/cache:rw,noexec,nosuid,size=256m,uid=1000,gid=1000,mode=0755 \
+            --tmpfs /app/.next/server/route-cache:rw,noexec,nosuid,size=64m,uid=1000,gid=1000,mode=0755 \
+            --tmpfs /tmp:rw,noexec,nosuid,size=32m,mode=1777 \
+            --cap-drop ALL --security-opt no-new-privileges:true \
+            -e API_URL=https://api.example.test -e SITE_URL=https://example.test \
+            "$image" >/dev/null
+          for _ in $(seq 1 30); do
+            if docker exec site wget -q -O /dev/null http://127.0.0.1:3000/api/health; then
+              echo "The image answered /api/health"
+              docker rm -f site >/dev/null
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::The image did not answer /api/health"
+          docker logs site || true
+          exit 1
+
+      - name: Summary
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          {
+            echo "### Image for $VERSION ($([ "$DRY_RUN" = true ] && echo 'dry run: built, not pushed' || echo pushed))"
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Image | \`$IMAGE:$VERSION\` \`${DIGEST:-not pushed}\` |"
+            if [ "$DRY_RUN" != true ]; then
+              echo
+              echo "Deploy it on the server: \`sudo /srv/probiz/bin/deploy-site bricks $VERSION\` (docs/runbook/deploy.md)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

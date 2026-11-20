@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # The Bricks website: Next.js standalone output. Build from the repository root:
-#   docker build --secret id=npm_token,env=NPM_TOKEN --build-arg SITE_VERSION=0.1.0 \
-#     -t ghcr.io/neramsoft/bricks-site:0.1.0 .
+#   docker build --secret id=npm_token,env=NPM_TOKEN --build-arg SITE_VERSION=1.0.0 \
+#     -t ghcr.io/neramsoft/bricks-site:1.0.0 .
 #
 # The SDK comes from GitHub Packages, a private registry, so the install needs a token with
 # read:packages. It is passed as a BuildKit secret (never a build argument) and exists only for
@@ -48,6 +48,10 @@ FROM ${NODE_IMAGE} AS runtime
 # hadolint ignore=DL3018
 RUN apk add --no-cache tini
 ARG SITE_VERSION=0.0.0-dev
+# The lowest ProBiz CMS version this site needs (CLAUDE.md, README.md). deploy-site reads this
+# label from the pulled image and refuses an image without it (ProBiz CMS docs/runbook/client-site.md).
+# Raise it together with CLAUDE.md, README.md and the SDK range in package.json.
+ARG MIN_CMS_VERSION=1.0.0
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     SITE_VERSION=${SITE_VERSION} \
@@ -58,8 +62,9 @@ WORKDIR /app
 COPY --from=build --chown=node:node /repo/.next/standalone ./
 COPY --from=build --chown=node:node /repo/.next/static ./.next/static
 COPY --from=build --chown=node:node /repo/public ./public
-# The start-up wrapper and what it imports (plain Node strips the types). The wrapper writes
-# server.runtime.mjs beside server.js, so the folder is the node user's.
+# The start-up wrapper and what it imports (plain Node strips the types). The wrapper keeps the
+# patched server.js in memory, so the container can run with a read-only root file system
+# (deploy/compose.yml): Next writes only to .next/cache and .next/server/route-cache.
 COPY --chown=node:node docker/web-server.mjs ./web-server.mjs
 COPY --chown=node:node src/lib/media-hosts.ts src/lib/server-patch.ts ./
 RUN mkdir -p .next/cache && chown node:node .next/cache
@@ -74,4 +79,5 @@ CMD ["node", "web-server.mjs"]
 LABEL org.opencontainers.image.title="Bricks website" \
       org.opencontainers.image.vendor="Bricks" \
       org.opencontainers.image.source="https://github.com/neramsoft/bricks-web" \
-      org.opencontainers.image.version=${SITE_VERSION}
+      org.opencontainers.image.version="${SITE_VERSION}" \
+      org.probiz.min-cms-version="${MIN_CMS_VERSION}"

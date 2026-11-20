@@ -32,3 +32,20 @@ export function patchServerSource(
   // A function as the replacement: a string would have its `$` sequences interpreted.
   return source.replace(CONFIG_LINE, () => `const nextConfig = ${JSON.stringify(config)}`);
 }
+
+/**
+ * Returns `source` with every `import.meta.url` replaced by `url`, so the module can be run from
+ * memory (a `data:` URL) and still find `next` and its own folder as if it had been loaded from
+ * `url`. This lets the image keep a read-only root file system: nothing is written beside
+ * `server.js`. Throws when `import.meta.url` is not there (a Next version that locates itself
+ * another way: the start-up wrapper must be updated, not guess).
+ */
+export function pinModuleUrl(source: string, url: string): string {
+  if (!source.includes("import.meta.url")) {
+    throw new Error(
+      "server.js does not use import.meta.url: this Next version needs server-patch.ts updated",
+    );
+  }
+  // A function as the replacement: a string would have its `$` sequences interpreted.
+  return source.replaceAll("import.meta.url", () => JSON.stringify(url));
+}
