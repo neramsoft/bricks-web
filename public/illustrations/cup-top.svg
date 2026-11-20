@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Šolja kafe, pogled odozgo">
+  <circle cx="200" cy="208" r="150" fill="#26201B"/>
+  <circle cx="200" cy="200" r="150" fill="#F3EDE4"/>
+  <circle cx="200" cy="200" r="118" fill="#E4DCCF"/>
+  <circle cx="200" cy="200" r="96" fill="#F3EDE4"/>
+  <circle cx="200" cy="200" r="82" fill="#5A3A28"/>
+  <circle cx="200" cy="200" r="70" fill="#8E5A3A"/>
+  <circle cx="200" cy="200" r="52" fill="#B4492E" opacity=".9"/>
+  <path d="M212 196c10-14 24-10 22 4s-20 10-22-4z" fill="#F3EDE4" opacity=".55"/>
+  <rect x="262" y="286" width="118" height="18" rx="9" transform="rotate(-35 262 286)" fill="#B3A89C"/>
+  <ellipse cx="258" cy="292" rx="18" ry="12" transform="rotate(-35 258 292)" fill="#B3A89C"/>
+  <rect x="60" y="310" width="44" height="44" fill="#F3EDE4"/><rect x="110" y="322" width="44" height="44" fill="#E4DCCF"/>
+</svg>

@@ -2,10 +2,12 @@ import "server-only";
 import { cache } from "react";
 import {
   getEnabledModules,
+  getForm,
   getMenus,
   getPage,
   getSite,
   isProbizApiError,
+  type PublicForm,
   type PublicMenus,
   type PublicPage,
   type PublicSite,
@@ -49,6 +51,16 @@ export const getPageData = cache(
     }
   },
 );
+
+/** An enabled form to draw (tagged `forms`, refreshed on `form.updated`); null for a disabled or missing one. */
+export const getFormData = cache(async (id: string): Promise<PublicForm | null> => {
+  try {
+    return await getForm(cms(), id);
+  } catch (error) {
+    if (isMissing(error)) return null;
+    throw error;
+  }
+});
 
 /** The draft behind a preview token; null for a token that is expired, wrong, or for another page. */
 export async function getPreviewPage(

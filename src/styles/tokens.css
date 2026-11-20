@@ -1,0 +1,59 @@
+/*
+ * The Bricks design tokens, from the prototype's tokens.css (design/skymedia-site is another
+ * client's; this is "Bricks Prototype"). Dark and locked by the brief: both theme hooks resolve to
+ * the same values. The brick colour follows the CMS brand's primary colour when the site settings
+ * hold one (lib/brand.ts writes `--brand-primary` and `--brand-accent`), and falls back to the
+ * prototype's value.
+ */
+:root {
+  --bg: #0e0b09;
+  --surface: #1a1512;
+  --raised: #26201b;
+  --raised-2: #332b25;
+  --border: #3a302a;
+  --text: #f3ede4;
+  --muted: #b3a89c;
+  --faint: #948879;
+  --brick: var(--brand-primary, #b4492e);
+  --brick-deep: color-mix(in oklab, var(--brick) 78%, black);
+  --brick-hi: color-mix(in oklab, var(--brick) 82%, white);
+  --on-brick: #ffffff;
+  --amber: var(--brand-accent, #e0a33b);
+  --on-amber: #0e0b09;
+  --positive: #7fb77e;
+  --danger: #d9634b;
+  --mortar: 4px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-press: 120ms;
+  --t-hover: 160ms;
+  --t-panel: 240ms;
+  --header-h: 96px;
+  --font-display-stack:
+    var(--font-display-latin), var(--font-display-ext), "Bricolage Grotesque", system-ui, sans-serif;
+  --font-sans-stack: var(--font-body-latin), var(--font-body-ext), "DM Sans", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-brick: var(--brick);
+  --color-brick-hi: var(--brick-hi);
+  --color-amber: var(--amber);
+  --color-positive: var(--positive);
+  --color-danger: var(--danger);
+  --font-display: var(--font-display-stack);
+  --font-sans: var(--font-sans-stack);
+  --spacing-mortar: var(--mortar);
+}
+
+@media (max-width: 760px) {
+  :root {
+    --header-h: 72px;
+  }
+}

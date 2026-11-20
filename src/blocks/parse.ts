@@ -122,7 +122,7 @@ export function parseBlock(block: PublicBlock, warn: Warn = defaultWarn): Parsed
     type: block.type as BlockType,
     anchorId: block.anchorId ?? null,
     data,
-  };
+  } as ParsedBlock;
 }
 
 /** The blocks of a page that can be drawn, in order. */

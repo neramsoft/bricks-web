@@ -1,0 +1,178 @@
+/* the reservation coupon (the prototype's brick ticket) */
+.coupon {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--brick);
+  color: #fff;
+  position: relative;
+}
+.coupon::before,
+.coupon::after {
+  content: "";
+  position: absolute;
+  left: calc(46% - 14px);
+  width: 28px;
+  height: 28px;
+  background: var(--bg);
+  border-radius: 50%;
+}
+.coupon::before {
+  top: -14px;
+}
+.coupon::after {
+  bottom: -14px;
+}
+.coupon .perf {
+  position: absolute;
+  left: calc(46% - 2.5px);
+  top: 14px;
+  bottom: 14px;
+  border-left: 5px dotted var(--bg);
+}
+.coupon-left {
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 400px;
+}
+.coupon-left h2 {
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: clamp(40px, 5vw, 80px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  max-width: 10ch;
+  overflow-wrap: anywhere;
+}
+.coupon-left p {
+  font-size: 17px;
+  max-width: 36ch;
+}
+.coupon-left .aside {
+  max-width: 36ch;
+}
+.coupon form {
+  padding: 48px 48px 48px 8%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field > label,
+.field > legend {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0;
+}
+.field-help {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+.coupon input:not([type="checkbox"]),
+.coupon select,
+.coupon textarea {
+  min-height: 52px;
+  background: var(--brick-hi);
+  border: 0;
+  padding: 0 16px;
+  color: #fff;
+  width: 100%;
+  border-radius: 0;
+}
+.coupon textarea {
+  padding: 14px 16px;
+  min-height: 120px;
+  resize: vertical;
+}
+.coupon input::placeholder,
+.coupon textarea::placeholder {
+  color: rgba(255, 255, 255, 0.82);
+}
+.coupon select option {
+  color: #111;
+}
+.coupon input:focus-visible,
+.coupon select:focus-visible,
+.coupon textarea:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.coupon input[type="datetime-local"],
+.coupon input[type="date"] {
+  color-scheme: dark;
+}
+.check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 15px;
+  min-height: 44px;
+}
+.check input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--bg);
+  flex: none;
+}
+.field-error {
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--bg);
+  color: #fff;
+  padding: 4px 10px;
+  align-self: flex-start;
+}
+.coupon .btn {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 56px;
+  margin-top: 6px;
+}
+.coupon .btn:hover {
+  background: #000;
+}
+.form-status {
+  background: var(--bg);
+  color: var(--text);
+  padding: 14px 16px;
+  font-weight: 600;
+}
+.form-status[data-kind="sent"] {
+  border-left: var(--mortar) solid var(--positive);
+}
+.form-status[data-kind="error"] {
+  border-left: var(--mortar) solid var(--danger);
+}
+.trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+@media (max-width: 760px) {
+  .coupon {
+    grid-template-columns: 1fr;
+  }
+  .coupon::before,
+  .coupon::after,
+  .coupon .perf {
+    display: none;
+  }
+  .coupon-left {
+    min-height: 0;
+    padding: 32px 24px 40px;
+    border-bottom: 5px dotted var(--bg);
+  }
+  .coupon form {
+    padding: 32px 24px;
+  }
+}

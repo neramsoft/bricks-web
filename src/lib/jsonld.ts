@@ -30,7 +30,12 @@ export function primaryAddress(site: PublicSite) {
 }
 
 /** The business (`Organization` or its `LocalBusiness` subtype) from the business settings. */
-export function organizationLd(site: PublicSite, siteUrl: string): JsonLd | null {
+export function organizationLd(
+  site: PublicSite,
+  siteUrl: string,
+  /** Properties a block on the page shows (hours, position, menu): see lib/block-jsonld.ts. */
+  extras: JsonLd = {},
+): JsonLd | null {
   const { business, brand } = site;
   const name = business.name ?? business.legalName;
   if (!name) return null;
@@ -60,6 +65,7 @@ export function organizationLd(site: PublicSite, siteUrl: string): JsonLd | null
         }
       : {}),
     ...(sameAs.length > 0 ? { sameAs } : {}),
+    ...extras,
   };
 }
 
