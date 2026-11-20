@@ -2,6 +2,8 @@ import type { PublicMenus, PublicPage, PublicSite } from "@probiz/sdk";
 import { Blocks } from "@/blocks/blocks";
 import { parseBlocks } from "@/blocks/parse";
 import { buildCrumbs } from "@/lib/breadcrumbs";
+import { businessExtras, recordNodes } from "@/lib/block-jsonld";
+import { validTimeZone } from "@/lib/format";
 import { breadcrumbLd, graph, organizationLd, websiteLd } from "@/lib/jsonld";
 import { messagesFor } from "@/lib/messages";
 import { Breadcrumbs } from "./breadcrumbs";
@@ -28,6 +30,7 @@ export function PageView({
   preview?: boolean;
 }) {
   const messages = messagesFor(locale);
+  const timeZone = validTimeZone(site.business.timeZone);
   const crumbs = buildCrumbs({
     homeLabel: messages.home,
     locale,
@@ -36,14 +39,19 @@ export function PageView({
     trail: page.breadcrumbs,
   });
   const blocks = parseBlocks(page.blocks);
-  // The home page names the business; every page below it has its trail. A draft says nothing.
+  const context = { site, siteUrl, locale, timeZone, messages, href: page.href };
+  // The home page names the business; every page below it has its trail. A page whose blocks show
+  // the business's hours, position or menu names the business too, with exactly those. A draft
+  // says nothing.
+  const extras = businessExtras(blocks, context);
+  const names = page.isHome || Object.keys(extras).length > 0;
   const ld = preview
     ? null
-    : graph(
-        page.isHome
-          ? [organizationLd(site, siteUrl), websiteLd(site, siteUrl, locale)]
-          : [breadcrumbLd(crumbs, siteUrl)],
-      );
+    : graph([
+        ...(names ? [organizationLd(site, siteUrl, extras)] : []),
+        ...(page.isHome ? [websiteLd(site, siteUrl, locale)] : [breadcrumbLd(crumbs, siteUrl)]),
+        ...recordNodes(blocks, context),
+      ]);
   return (
     <SiteChrome
       site={site}
@@ -52,11 +60,27 @@ export function PageView({
       locale={locale}
       alternates={page.alternates}
     >
-      {preview ? <p role="status">{messages.previewBanner}</p> : null}
+      {preview ? (
+        <p role="status" className="preview-banner">
+          {messages.previewBanner}
+        </p>
+      ) : null}
       <JsonLd data={ld} />
       <Breadcrumbs crumbs={crumbs} label={messages.breadcrumbs} />
-      {blocks[0]?.type === "hero" ? null : <h1>{page.title}</h1>}
-      <Blocks blocks={blocks} />
+      {blocks[0]?.type === "hero" ? null : (
+        <h1 className="page-title wrap h-display">{page.title}</h1>
+      )}
+      <Blocks
+        blocks={blocks}
+        page={{
+          messages,
+          locale,
+          site,
+          timeZone,
+          path: page.href,
+          preview,
+        }}
+      />
     </SiteChrome>
   );
 }

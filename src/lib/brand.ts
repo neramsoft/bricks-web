@@ -3,13 +3,18 @@ import type { PublicSite } from "@probiz/sdk";
 const HEX_COLOUR = /^#[0-9a-fA-F]{6}$/;
 
 /**
- * The CMS brand's colours as CSS variables for `<style>`. Only a six-digit hex colour is
- * written (the value goes into a style element, so nothing else may). The site theme
- * (src/styles/theme.css) uses `--brand-primary` for the light theme's primary colour and
- * falls back to its own token when the variable is missing.
+ * The CMS brand's colours as CSS variables for `<style>`. Only a six-digit hex colour is written
+ * (the value goes into a style element, so nothing else may). The theme (src/styles/tokens.css)
+ * uses `--brand-primary` for the brick colour and `--brand-accent` for the amber, and falls back
+ * to the prototype's own values when a variable is missing.
  */
 export function brandCss(brand: PublicSite["brand"] | undefined): string {
-  const primary = brand?.colors.primary;
-  if (!primary || !HEX_COLOUR.test(primary)) return "";
-  return `:root{--brand-primary:${primary}}`;
+  const entries: Array<[string, string | undefined]> = [
+    ["--brand-primary", brand?.colors.primary],
+    ["--brand-accent", brand?.colors.accent],
+  ];
+  const declarations = entries.flatMap(([name, value]) =>
+    value && HEX_COLOUR.test(value) ? [`${name}:${value}`] : [],
+  );
+  return declarations.length > 0 ? `:root{${declarations.join(";")}}` : "";
 }

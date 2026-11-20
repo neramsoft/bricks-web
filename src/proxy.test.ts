@@ -72,6 +72,8 @@ describe("proxy", () => {
   it("rewrites an unknown address to /missing and keeps the address", async () => {
     const response = await ask("/nema?a=1");
     expect(response.headers.get("x-middleware-rewrite")).toBe("https://bricks.ba/missing/nema?a=1");
+    // The status is the proxy's: the 404 page is an ordinary page whose body is in the first HTML.
+    expect(response.status).toBe(404);
   });
 
   it("treats the default language's own prefix as a missing address", async () => {

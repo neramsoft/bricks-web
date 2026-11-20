@@ -5,10 +5,10 @@ import type { Crumb } from "@/lib/breadcrumbs";
 export function Breadcrumbs({ crumbs, label }: { crumbs: readonly Crumb[]; label: string }) {
   if (crumbs.length === 0) return null;
   return (
-    <nav aria-label={label}>
-      <ol className="flex list-none flex-wrap gap-2 p-0">
+    <nav aria-label={label} className="crumbs wrap">
+      <ol>
         {crumbs.map((crumb) => (
-          <li key={crumb.href} className="flex gap-2 not-first:before:content-['/']">
+          <li key={crumb.href}>
             {crumb.current ? (
               <span aria-current="page">{crumb.name}</span>
             ) : crumb.link === false ? (

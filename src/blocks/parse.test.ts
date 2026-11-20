@@ -8,7 +8,7 @@ describe("parseBlocks", () => {
   it("keeps a valid block with its defaults and the data the API added", () => {
     const [block] = parseBlocks([blockFixture("statement", { text: "Dobrodošli" })]);
     expect(block).toMatchObject({ type: "statement", anchorId: null });
-    expect(block?.data.text).toBe("Dobrodošli");
+    expect((block?.data as { text?: string }).text).toBe("Dobrodošli");
   });
 
   it("skips an unknown type with a warning and keeps the rest", () => {

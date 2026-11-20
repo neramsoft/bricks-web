@@ -41,7 +41,7 @@ export function LanguageSwitcher({
 }) {
   if (links.length === 0) return null;
   return (
-    <ul className={`flex list-none gap-2 p-0 ${className ?? ""}`} aria-label={label}>
+    <ul className={className} aria-label={label}>
       {links.map((link) => (
         <li key={link.code}>
           <a href={link.href} hrefLang={link.code} lang={link.code} aria-label={link.name}>

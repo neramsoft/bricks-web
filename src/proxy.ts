@@ -50,7 +50,7 @@ export async function proxy(request: NextRequest) {
       // The address in the browser stays the one that was asked for.
       const target = new URL(`/missing${request.nextUrl.pathname}`, request.url);
       target.search = request.nextUrl.search;
-      return NextResponse.rewrite(target, { request: { headers } });
+      return NextResponse.rewrite(target, { request: { headers }, status: 404 });
     }
   } catch {
     // The API did not answer in time: show the page as it is rather than hold every visitor up.
@@ -59,10 +59,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Pages only: not Next's own files, the API routes, the preview, robots.txt, sitemap.xml and
-  // anything with a file extension. Add a route outside the catch-all here (and to
+  // Pages only: not Next's own files, the API routes, the preview, the thank-you page of a form
+  // post, robots.txt, sitemap.xml and anything with a file extension. Add a route outside the catch-all here (and to
   // lib/reserved-paths.ts).
   matcher: [
-    "/((?!_next/|api/|preview/|preview$|missing/|missing$|robots\\.txt|sitemap\\.xml|.*\\..*).*)",
+    "/((?!_next/|api/|preview/|preview$|missing/|missing$|~form|robots\\.txt|sitemap\\.xml|.*\\..*).*)",
   ],
 };
