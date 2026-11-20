@@ -8,7 +8,13 @@
 **/*.pem
 **/*.key
 
-# Not needed to build
+# Not needed to build (unit tests import test/fixtures, which is not copied; next build type-checks every .ts it finds)
+**/*.test.ts
+**/*.test.tsx
+test
+e2e
+vitest.config.ts
+playwright.config.ts
 .git
 .github
 .claude
