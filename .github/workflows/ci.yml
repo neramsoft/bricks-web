@@ -122,7 +122,8 @@ jobs:
           set -euo pipefail
           docker_min="$(sed -nE 's/^ARG MIN_CMS_VERSION=([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' Dockerfile)"
           readme_min="$(sed -nE 's/^Lowest ProBiz CMS version: ([0-9]+\.[0-9]+\.[0-9]+)\.?$/\1/p' README.md)"
-          grep -q 'org.probiz.min-cms-version="${MIN_CMS_VERSION}"' Dockerfile
+          # shellcheck disable=SC2016 # the Dockerfile's literal text, not a shell expansion
+          grep -qF 'org.probiz.min-cms-version="${MIN_CMS_VERSION}"' Dockerfile
           test -n "$docker_min" && test "$docker_min" = "$readme_min"
 
       - name: Lint the workflows (actionlint)

@@ -165,6 +165,7 @@ jobs:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2153 # IMAGE is the workflow's env, not a typo of image
           if [ "$DRY_RUN" = true ]; then
             image=bricks-site:release-dry-run
           else
