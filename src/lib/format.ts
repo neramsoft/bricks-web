@@ -74,8 +74,13 @@ export function clock(instant: Date | string, timeZone: string, locale: string):
 }
 
 /** "petak" / "Friday". */
-export function weekdayIn(instant: Date | string, timeZone: string, locale: string): string {
-  return zoned(instant, timeZone, { weekday: "long" })(locale);
+export function weekdayIn(
+  instant: Date | string,
+  timeZone: string,
+  locale: string,
+  width: "long" | "short" = "long",
+): string {
+  return zoned(instant, timeZone, { weekday: width })(locale).replace(/\.$/, "");
 }
 
 /**

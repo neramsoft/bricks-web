@@ -69,14 +69,25 @@ function Render({ block, ctx }: { block: ParsedBlock; ctx: BlockContext }): Reac
   }
 }
 
-type Page = Omit<BlockContext, "lead" | "menuIndex">;
+type Page = Omit<BlockContext, "lead" | "menuIndex" | "reservationAnchor">;
 
 /**
  * Draws the blocks that passed the check, in order. A map next to the opening hours is one
  * two-column panel (the prototype's "Gdje smo"), whichever comes first.
  */
+/** The anchor of the page's first reservation form, as `ContactForm` gives it; null for a page without one. */
+export function reservationAnchorOf(blocks: readonly ParsedBlock[]): string | null {
+  for (const block of blocks) {
+    if (block.type !== "contactForm") continue;
+    if (block.anchorId) return block.anchorId;
+    if (block.data.formId) return `form-${block.id}`;
+  }
+  return null;
+}
+
 export function Blocks({ blocks, page }: { blocks: readonly ParsedBlock[]; page: Page }) {
   let menus = 0;
+  const reservationAnchor = reservationAnchorOf(blocks);
   const out: ReactNode[] = [];
   for (let index = 0; index < blocks.length; index += 1) {
     const block = blocks[index]!;
@@ -84,6 +95,7 @@ export function Blocks({ blocks, page }: { blocks: readonly ParsedBlock[]; page:
     const ctx: BlockContext = {
       ...page,
       lead: index === 0,
+      reservationAnchor,
       menuIndex: block.type === "restaurantMenu" ? menus : 0,
     };
     if (block.type === "restaurantMenu") menus += 1;

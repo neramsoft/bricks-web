@@ -1,7 +1,7 @@
 import type { PublicSite } from "@probiz/sdk";
 import type { ParsedBlock } from "@/blocks/types";
 import { eventSummaryLd } from "@/events/jsonld";
-import { featuredIndex } from "@/events/view-model";
+import { splitEvents } from "@/events/view-model";
 import { locationLd } from "@/locations/jsonld";
 import { openingHoursSpecification } from "./hours-ld";
 import { absoluteUrl } from "./locale";
@@ -22,6 +22,8 @@ interface Context {
   messages: Messages;
   /** The page's own address with its prefix. */
   href: string;
+  /** The performers the wide event card shows, by event id (the full event has them). */
+  performers?: Readonly<Record<string, readonly string[]>>;
 }
 
 /** One `Event` per event of an `eventList` block, one `LocalBusiness` per venue of a `locationList` block. */
@@ -30,8 +32,8 @@ export function recordNodes(blocks: readonly ParsedBlock[], ctx: Context): Ld[] 
   for (const block of blocks) {
     if (block.type === "eventList") {
       const events = (block.data.events ?? []).filter((event) => event.title);
-      const wide = featuredIndex(events);
-      events.forEach((event, index) =>
+      const wide = splitEvents(events).first;
+      events.forEach((event) =>
         nodes.push(
           eventSummaryLd({
             event,
@@ -39,7 +41,8 @@ export function recordNodes(blocks: readonly ParsedBlock[], ctx: Context): Ld[] 
             siteUrl: ctx.siteUrl,
             timeZone: ctx.timeZone,
             locale: ctx.locale,
-            showsImage: index === wide,
+            showsImage: event === wide,
+            performers: event === wide ? ctx.performers?.[event.id] : undefined,
             messages: ctx.messages.events,
           }),
         ),

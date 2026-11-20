@@ -4,7 +4,8 @@ import { absoluteUrl } from "@/lib/locale";
 import { priceText, type EventSummary } from "./view-model";
 
 // `Event` structured data for the events a page lists. Everything in it is on the card: the name,
-// the summary, the dates, the status, the place, the price and the picture of the wide card.
+// the summary, the dates, the status, the place, the price, the performers and the picture of the
+// wide card.
 
 type Ld = Record<string, unknown>;
 const SCHEMA = "https://schema.org/";
@@ -49,17 +50,16 @@ export function eventSummaryLd(options: {
   locale: string;
   /** Whether the card shows the picture (the wide card does). */
   showsImage: boolean;
+  /** The performers the card shows ("Svira"); none when it shows none. */
+  performers?: readonly string[];
   messages: Parameters<typeof priceText>[2];
 }): Ld {
   const { event, siteUrl, timeZone, site } = options;
   const startDate = event.allDay
     ? event.startsAt.slice(0, 10)
     : isoInZone(event.startsAt, timeZone);
-  const endDate = event.endsAt
-    ? event.allDay
-      ? event.endsAt.slice(0, 10)
-      : isoInZone(event.endsAt, timeZone)
-    : null;
+  // The end is on the card as the hours' second half; an all-day card shows no hours.
+  const endDate = event.endsAt && !event.allDay ? isoInZone(event.endsAt, timeZone) : null;
   const shownPrice = priceText(event, options.locale, options.messages) !== null;
   const offer =
     !shownPrice || event.priceType === "ON_REQUEST"
@@ -92,6 +92,9 @@ export function eventSummaryLd(options: {
     ...(event.place ? { location: placeLd(event.place, siteUrl) } : {}),
     ...(options.showsImage && event.image
       ? { image: [absoluteUrl(siteUrl, event.image.url)] }
+      : {}),
+    ...(options.performers && options.performers.length > 0
+      ? { performer: options.performers.map((name) => ({ "@type": "Person", name })) }
       : {}),
     ...(offer ? { offers: offer } : {}),
     ...(name ? { organizer: { "@id": `${absoluteUrl(siteUrl, "/")}#organization` } } : {}),

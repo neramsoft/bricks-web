@@ -6,10 +6,15 @@ import { eventSummaryLd } from "./jsonld";
 import {
   badgesOf,
   dateTile,
-  featuredIndex,
+  entryText,
+  fullWhenText,
+  icsUrl,
   placeText,
   priceText,
-  whenText,
+  rowWhenText,
+  slugOfHref,
+  splitEvents,
+  timeRange,
   type EventSummary,
 } from "./view-model";
 
@@ -58,12 +63,74 @@ describe("dateTile", () => {
   });
 });
 
-describe("whenText", () => {
-  it("has the weekday and the hour in Sarajevo", () => {
-    expect(whenText(event(), "Europe/Sarajevo", "bs", bs.events)).toBe("petak, 21:00");
-    expect(whenText(event({ allDay: true }), "Europe/Sarajevo", "bs", bs.events)).toBe(
-      "petak, cijeli dan",
+describe("timeRange and the when lines", () => {
+  const zone = "Europe/Sarajevo";
+  it("gives the hours, with the end when there is one", () => {
+    expect(timeRange(event(), zone, "bs", bs.events)).toBe("21:00");
+    expect(timeRange(event({ endsAt: "2026-11-20T22:30:00.000Z" }), zone, "bs", bs.events)).toBe(
+      "21:00\u201323:30",
     );
+    expect(timeRange(event({ allDay: true }), zone, "bs", bs.events)).toBe("cijeli dan");
+  });
+
+  it("names the day of an end after midnight on the venue's clock", () => {
+    // 21:00 to 01:00 the next day in Sarajevo (UTC 20:00 to 00:00).
+    const night = event({ endsAt: "2026-11-21T00:00:00.000Z" });
+    expect(timeRange(night, zone, "bs", bs.events)).toBe("21:00\u2013sub 01:00");
+    expect(timeRange(night, zone, "en", en.events)).toBe("21:00\u2013Sat 01:00");
+    // 23:30 to 00:45 Sarajevo: the same UTC day, but across midnight on the venue's clock.
+    const late = event({
+      startsAt: "2026-11-20T22:30:00.000Z",
+      endsAt: "2026-11-20T23:45:00.000Z",
+    });
+    expect(timeRange(late, zone, "bs", bs.events)).toBe("23:30\u2013sub 00:45");
+    // The same hours inside one Sarajevo day carry no weekday.
+    const same = event({
+      startsAt: "2026-11-20T18:30:00.000Z",
+      endsAt: "2026-11-20T21:45:00.000Z",
+    });
+    expect(timeRange(same, zone, "bs", bs.events)).toBe("19:30\u201322:45");
+  });
+
+  it("builds a row's and the wide card's lines", () => {
+    const e = event({ endsAt: "2026-11-20T22:00:00.000Z" });
+    expect(rowWhenText(e, zone, "bs", bs.events)).toBe("petak, 21:00\u201323:00");
+    expect(fullWhenText(e, zone, "bs", bs.events)).toBe(
+      "petak, 20. novembar \u00b7 21:00\u201323:00",
+    );
+    expect(fullWhenText(e, zone, "en", en.events)).toBe(
+      "Friday, November 20 \u00b7 21:00\u201323:00",
+    );
+  });
+});
+
+describe("entryText", () => {
+  it("says free entry in words and the rest as the price", () => {
+    expect(entryText(event(), "bs", bs.events)).toBe("Bez ulaza");
+    expect(entryText(event(), "en", en.events)).toBe("Free entry");
+    expect(entryText(event({ priceType: "FIXED", price: 1000 }), "bs", bs.events)).toBe(
+      "10,00\u00a0KM",
+    );
+    expect(entryText(event({ priceType: "FROM", price: 500 }), "bs", bs.events)).toBe(
+      "od 5,00\u00a0KM",
+    );
+    expect(entryText(event({ priceType: "FROM", price: null }), "bs", bs.events)).toBeNull();
+  });
+});
+
+describe("icsUrl and slugOfHref", () => {
+  it("is the CMS's public file address, not a data address", () => {
+    expect(icsUrl("https://api.bricks.ba", "abc")).toBe(
+      "https://api.bricks.ba/v1/public/events/abc/ics",
+    );
+    expect(icsUrl("https://api.bricks.ba/", "abc")).toBe(
+      "https://api.bricks.ba/v1/public/events/abc/ics",
+    );
+  });
+  it("takes the slug from the event's own address", () => {
+    expect(slugOfHref("/dogadjaji/akustika-petkom")).toBe("akustika-petkom");
+    expect(slugOfHref("/en/events/acoustic/?x=1")).toBe("acoustic");
+    expect(slugOfHref(null)).toBeNull();
   });
 });
 
@@ -93,16 +160,26 @@ describe("placeText and badges", () => {
   });
 });
 
-describe("featuredIndex", () => {
-  it("is the first featured event that is on", () => {
+describe("splitEvents", () => {
+  it("makes the first event that is not over the wide one, whatever the featured flag", () => {
     const list = [
-      event(),
-      event({ featured: true, eventStatus: "CANCELLED" }),
-      event({ featured: true }),
-      event({ featured: true }),
+      event({ id: "old", ended: true }),
+      event({ id: "next" }),
+      event({ id: "flagged", featured: true }),
     ];
-    expect(featuredIndex(list)).toBe(2);
-    expect(featuredIndex([event()])).toBe(-1);
+    const { first, rest } = splitEvents(list);
+    expect(first?.id).toBe("next");
+    expect(rest.map((e) => e.id)).toEqual(["old", "flagged"]);
+  });
+  it("keeps a cancelled next event as the wide one (it shows as cancelled)", () => {
+    expect(splitEvents([event({ id: "c", eventStatus: "CANCELLED" }), event()]).first?.id).toBe(
+      "c",
+    );
+  });
+  it("has no wide card when everything is over, or when there is nothing", () => {
+    expect(splitEvents([event({ ended: true })]).first).toBeNull();
+    expect(splitEvents([event({ ended: true })]).rest).toHaveLength(1);
+    expect(splitEvents([])).toEqual({ first: null, rest: [] });
   });
 });
 
@@ -136,6 +213,30 @@ describe("eventSummaryLd", () => {
     expect(ld.image).toEqual(["https://bricks.ba/m/a.png"]);
     expect(ld).not.toHaveProperty("offers");
   });
+  it("has the end only when the card shows it, and the performers only when shown", () => {
+    const e = event({ endsAt: "2026-11-20T22:00:00.000Z" });
+    const ld = eventSummaryLd({
+      ...options,
+      event: e,
+      showsImage: false,
+      performers: ["Duo Slatina", "Amar"],
+    });
+    expect(ld.endDate).toBe("2026-11-20T23:00:00+01:00");
+    expect(ld.performer).toEqual([
+      { "@type": "Person", name: "Duo Slatina" },
+      { "@type": "Person", name: "Amar" },
+    ]);
+    const plain = eventSummaryLd({ ...options, event: event(), showsImage: false });
+    expect(plain).not.toHaveProperty("endDate");
+    expect(plain).not.toHaveProperty("performer");
+    const allDay = eventSummaryLd({
+      ...options,
+      event: event({ allDay: true, endsAt: "2026-11-21T00:00:00.000Z" }),
+      showsImage: false,
+    });
+    expect(allDay).not.toHaveProperty("endDate");
+  });
+
   it("uses dates for an all-day event", () => {
     const ld = eventSummaryLd({
       ...options,

@@ -247,6 +247,39 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
         });
     }
 
+    const detail = /^\/v1\/public\/events\/by-slug\/([^/]+)$/.exec(path);
+    if (detail) {
+      const summary = fixtures.events.find((e) => e.href?.endsWith(`/${detail[1]}`));
+      if (!summary) return json(404, error(404, "NOT_FOUND", "No such event"));
+      // Only what the site reads of the full event: its name and its performers.
+      const performers: S["PublicEventPerformer"][] = [
+        {
+          id: "00000000-0000-4000-8000-000000005001",
+          role: null,
+          image: null,
+          href: null,
+          name: "Duo Slatina",
+        },
+        {
+          id: "00000000-0000-4000-8000-000000005002",
+          role: null,
+          image: null,
+          href: null,
+          name: "Amar Hodžić",
+        },
+      ];
+      return json(200, { ...summary, slug: detail[1], performers });
+    }
+    const ics = /^\/v1\/public\/events\/([^/]+)\/ics$/.exec(path);
+    if (ics) {
+      return respond(
+        response,
+        200,
+        "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n",
+        "text/calendar",
+      );
+    }
+
     const form = /^\/v1\/public\/forms\/([^/]+)(\/token)?$/.exec(path);
     if (form) {
       if (form[1] !== fixtures.form.id) return json(404, error(404, "NOT_FOUND", "No such form"));
