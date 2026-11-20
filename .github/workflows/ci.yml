@@ -84,6 +84,38 @@ jobs:
 
   # The files that only the server runs: they are checked here, because nothing else would until the
   # first deploy. Docker Compose is on the runner; `config` needs no daemon and no image.
+  # The image as release.yml builds it, on every PR: the build context is not the CI checkout
+  # (.dockerignore), so a type error or a missing file can appear only here.
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Build the image
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: DOCKER_BUILDKIT=1 docker build --secret id=npm_token,env=NPM_TOKEN -t bricks-site:ci .
+
+      - name: The image starts read-only and answers /api/health
+        run: |
+          set -euo pipefail
+          docker run -d --name site --read-only \
+            --tmpfs /app/.next/cache:uid=1000,gid=1000 \
+            --tmpfs /app/.next/server/route-cache:uid=1000,gid=1000 \
+            --tmpfs /tmp \
+            -e API_URL=https://api.example.test -e SITE_URL=https://example.test \
+            -p 127.0.0.1:3000:3000 bricks-site:ci
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null; then echo "healthy"; exit 0; fi
+            sleep 2
+          done
+          docker logs site
+          exit 1
+
   deploy-files:
     runs-on: ubuntu-24.04
     timeout-minutes: 10

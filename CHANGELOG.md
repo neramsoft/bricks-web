@@ -6,6 +6,13 @@ Lowest ProBiz CMS version: 1.0.0 (README.md).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-20
+
+### Fixed
+
+- The image builds again: the unit tests (`*.test.ts`), which import `test/fixtures`, are left out of the Docker build context, so `next build` no longer type-checks them without their fixtures. 1.0.0 has no image.
+- CI builds the image and starts it read-only on every pull request, so a difference between the CI checkout and the build context shows before a release.
+
 ## [1.0.0] - 2026-11-20
 
 The first release: the whole of v1 (docs/decisions/0001 F1).
