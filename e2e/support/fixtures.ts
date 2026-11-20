@@ -276,21 +276,19 @@ function events(mediaBase: string, now: Date): S["PublicEventSummary"][] {
   };
   const make = (
     n: number,
-    daysAhead: number,
-    hour: number,
+    start: [daysAhead: number, hour: number],
+    end: [daysAhead: number, hour: number] | null,
     title: string,
     category: string,
     summary: string,
-    featured = false,
+    more: Partial<S["PublicEventSummary"]> = {},
   ): S["PublicEventSummary"] => ({
     id: uuid(4000 + n),
     href: null,
-    startsAt: eventAt(now, daysAhead, hour),
-    endsAt: null,
+    startsAt: eventAt(now, ...start),
+    endsAt: end ? eventAt(now, ...end) : null,
     place,
-    image: featured
-      ? image(mediaBase, "event-acoustic", 1200, 675, "Gitarista na pozornici")
-      : null,
+    image: null,
     eventStatus: "SCHEDULED",
     priceType: "FREE",
     price: null,
@@ -299,23 +297,44 @@ function events(mediaBase: string, now: Date): S["PublicEventSummary"][] {
     summary,
     allDay: false,
     currency: "BAM",
-    featured,
+    featured: false,
     ended: false,
     registrationOpen: false,
+    ...more,
   });
+  // The first is the next event: it is drawn wide, with its photograph, whatever `featured` says
+  // (the flag is on a later one on purpose). It has a page of its own, so its performers are read
+  // from the full event.
   return [
     make(
       1,
-      1,
-      21,
+      [1, 21],
+      [1, 23],
       "Akustika petkom",
       "Live muzika",
       "Gitara i vokal, bez ulaza. Sto rezerviši ranije, petkom je puno.",
-      true,
+      {
+        href: "/dogadjaji/akustika-petkom",
+        image: image(mediaBase, "event-acoustic", 1200, 675, "Gitarista na pozornici"),
+      },
     ),
-    make(2, 3, 20, "Pub kviz", "Kviz", "Ekipe do šest ljudi. Prijava na šanku do 19:30."),
-    make(3, 8, 21, "DJ set, 90-e i 2000-e", "DJ", "Unutra. Bez ulaza."),
-    make(4, 15, 21, "Akustika petkom", "Live muzika", "Gostujući bend iz Tuzle. Najava uskoro."),
+    // Paid, no end.
+    make(2, [3, 20], null, "Pub kviz", "Kviz", "Ekipe do šest ljudi. Prijava na šanku do 19:30.", {
+      priceType: "FIXED",
+      price: 500,
+      featured: true,
+    }),
+    // Free, past midnight.
+    make(3, [8, 21], [9, 1], "DJ set, 90-e i 2000-e", "DJ", "Unutra. Bez ulaza."),
+    make(
+      4,
+      [15, 21],
+      [15, 23],
+      "Gostujući bend",
+      "Live muzika",
+      "Gostujući bend iz Tuzle. Najava uskoro.",
+      { priceType: "FROM", price: 1000, eventStatus: "CANCELLED" },
+    ),
   ];
 }
 

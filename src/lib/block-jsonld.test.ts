@@ -108,4 +108,32 @@ describe("recordNodes", () => {
     expect(nodes[1]).toMatchObject({ name: "Bricks Tuzla" });
     expect(nodes[1]).not.toHaveProperty("openingHoursSpecification");
   });
+
+  it("gives the performers to the wide event only", () => {
+    const base = {
+      href: null,
+      startsAt: "2026-11-20T20:00:00Z",
+      endsAt: null,
+      place: null,
+      image: null,
+      eventStatus: "SCHEDULED",
+      priceType: "FREE",
+      price: null,
+      category: null,
+      summary: "",
+      allDay: false,
+      currency: "BAM",
+      featured: false,
+      ended: false,
+      registrationOpen: false,
+    };
+    const first = { ...base, id: ids(7), title: "Akustika" };
+    const second = { ...base, id: ids(8), title: "Kviz" };
+    const nodes = recordNodes(
+      blocks(blockFixture("eventList", { events: [first, second] }, { id: ids(9) })),
+      { ...context, performers: { [first.id]: ["Duo Slatina"], [second.id]: ["Nobody"] } },
+    );
+    expect(nodes[0]).toMatchObject({ performer: [{ name: "Duo Slatina" }] });
+    expect(nodes[1]).not.toHaveProperty("performer");
+  });
 });
