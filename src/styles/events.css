@@ -1,0 +1,238 @@
+/* events: the next one wide, the others as rows */
+.ev-featured {
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 32px;
+}
+.ev-featured:last-child {
+  margin-bottom: 0;
+}
+.ev-fbody {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 20px;
+  padding: 24px;
+}
+.ev-featured .tile-date {
+  background: var(--brick);
+  color: #fff;
+}
+.ev-kind {
+  font-size: 14px;
+  color: var(--amber);
+  font-weight: 600;
+}
+.ev-featured h3 {
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+  font-size: clamp(28px, 3vw, 40px);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  margin-top: 4px;
+}
+.ev-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px 24px;
+  margin: 18px 0 0;
+  font-size: 15px;
+}
+.ev-facts dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.ev-facts dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+.ev-summary {
+  margin-top: 16px;
+  font-size: 15px;
+  max-width: 56ch;
+}
+.ev-cta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 20px;
+}
+.ev-cta .btn {
+  min-height: 48px;
+}
+.ev-photo {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--raised);
+  overflow: hidden;
+}
+.ev-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ev-more-h {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.ev-list {
+  display: grid;
+  gap: 0;
+}
+.ev {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 20px;
+  padding: 20px 0;
+  align-items: start;
+}
+.ev + .ev {
+  box-shadow: inset 0 1px 0 var(--surface);
+}
+.tile-date {
+  background: var(--surface);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display-stack);
+  line-height: 1;
+}
+.tile-date b {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.tile-date span {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.ev h4 {
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+  font-size: clamp(22px, 2vw, 28px);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+.ev .meta {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.ev p:not(.meta) {
+  margin-top: 8px;
+  font-size: 15px;
+  max-width: 48ch;
+}
+.ev-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+}
+.ev-link:hover {
+  color: var(--amber);
+}
+.ev .ev-link {
+  margin-top: 6px;
+}
+.ev .badge,
+.ev-featured .badge {
+  display: inline-block;
+  margin-top: 8px;
+  margin-right: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: var(--raised);
+}
+[data-event-status="CANCELLED"] h3,
+[data-event-status="CANCELLED"] h4 {
+  text-decoration: line-through;
+}
+@media (max-width: 560px) {
+  .ev-fbody {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px;
+  }
+  .ev-featured .tile-date {
+    width: 72px;
+  }
+}
+
+/* locations: the venue picker */
+.venues {
+  display: grid;
+  gap: var(--mortar);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 420px));
+}
+.venues.list {
+  grid-template-columns: 1fr;
+}
+.venue {
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+.venue .venue-image {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--raised);
+}
+.venue .venue-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.venue-body {
+  padding: 24px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.venue h3 {
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: clamp(26px, 2.4vw, 36px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.venue address {
+  font-style: normal;
+  color: var(--muted);
+}
+.venue .status {
+  font-size: 14px;
+  font-weight: 600;
+}
+.venue .status.open {
+  color: var(--positive);
+}
+.venue .status.closed {
+  color: var(--faint);
+}
+.venue .venue-link {
+  margin-top: auto;
+  padding-top: 12px;
+  font-weight: 600;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.venue:hover .venue-link,
+.venue .venue-link:hover {
+  color: var(--amber);
+}

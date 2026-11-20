@@ -1,0 +1,56 @@
+# The Bricks website on the server, next to the CMS (ProBiz CMS docs/decisions/0054 S2, docs/runbook/client-site.md).
+# Its own Compose project in /srv/probiz/sites/bricks/ (compose.yml and .env from this folder), deployed with
+# `sudo /srv/probiz/bin/deploy-site bricks X.Y.Z`, which writes SITE_RELEASE into .env. Never run with the CMS's
+# own compose.yml: the website joins the CMS's edge network and no other, so it cannot reach Postgres or Redis.
+#
+# The service name is the host name Caddy uses (bricks.caddy: `import upstream bricks-site:3000`) and must be
+# unique on the edge network, so it is never `web`.
+name: ${COMPOSE_PROJECT_NAME:-bricks}
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "20m", max-file: "5" }
+
+services:
+  bricks-site:
+    image: ghcr.io/neramsoft/bricks-site:${SITE_RELEASE:?set SITE_RELEASE in .env (deploy-site writes it)}
+    restart: unless-stopped
+    # The settings of the site only, not the whole .env: SITE_RELEASE, SITE_HOST and the rest of this
+    # folder's .env stay out of the container. The image checks API_URL and SITE_URL when it starts.
+    environment:
+      NODE_ENV: production
+      # The CMS API through its public address: `api` has no address on the edge network (client-site.md).
+      API_URL: ${API_URL:?set API_URL in .env}
+      # The API as the visitor's browser reaches it: table ordering sends orders straight to it.
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      SITE_URL: ${SITE_URL:?set SITE_URL in .env}
+      MEDIA_PUBLIC_URL: ${MEDIA_PUBLIC_URL:-}
+      # Empty: pages refresh on their timer only, and the webhook answers 503.
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
+      # Caddy sets X-Forwarded-For to the visitor's address alone (its `upstream` snippet).
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
+    # The edge network only (Caddy is on it too).
+    networks: [edge]
+    # The health check comes from the image (/api/health, answered without calling the CMS).
+    # Hardening as the CMS's apps: non-root user (the image's), no capability, no new privileges.
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    pids_limit: 1024
+    # Read-only root file system. Checked with the standalone server: it writes only to Next's cache
+    # (.next/cache: fetch results and optimised images) and to the page cache
+    # (.next/server/route-cache); docker/web-server.mjs keeps its patched server.js in memory. A
+    # tmpfs is memory and counts against mem_limit: the sizes below leave room for the process.
+    # uid/gid 1000 is the image's `node` user. The caches start empty after a restart and fill again.
+    read_only: true
+    tmpfs:
+      - /app/.next/cache:rw,noexec,nosuid,size=256m,uid=1000,gid=1000,mode=0755
+      - /app/.next/server/route-cache:rw,noexec,nosuid,size=64m,uid=1000,gid=1000,mode=0755
+      - /tmp:rw,noexec,nosuid,size=32m,mode=1777
+    stop_grace_period: 20s
+    mem_limit: ${SITE_MEMORY:-1g}
+    logging: *logging
+
+networks:
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-probiz-edge}

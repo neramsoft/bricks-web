@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Dva stola s gostima, pogled odozgo">
+  <rect x="40" y="110" width="200" height="100" fill="#332B25"/>
+  <rect x="360" y="110" width="200" height="100" fill="#332B25"/>
+  <g>
+    <path d="M70 100a30 18 0 0 1 60 0" fill="#B4492E"/><circle cx="100" cy="80" r="20" fill="#E0A33B"/>
+    <path d="M150 100a30 18 0 0 1 60 0" fill="#E0A33B"/><circle cx="180" cy="80" r="20" fill="#F3EDE4"/>
+    <path d="M130 220a30 18 0 0 0 60 0" fill="#F3EDE4"/><circle cx="160" cy="240" r="20" fill="#B4492E"/>
+    <path d="M390 100a30 18 0 0 1 60 0" fill="#F3EDE4"/><circle cx="420" cy="80" r="20" fill="#B4492E"/>
+    <path d="M450 220a30 18 0 0 0 60 0" fill="#B4492E"/><circle cx="480" cy="240" r="20" fill="#E0A33B"/>
+  </g>
+  <g>
+    <circle cx="100" cy="160" r="22" fill="#F3EDE4"/><circle cx="100" cy="160" r="13" fill="#5A3A28"/>
+    <circle cx="180" cy="160" r="22" fill="#F3EDE4"/><circle cx="180" cy="160" r="13" fill="#5A3A28"/>
+    <circle cx="420" cy="160" r="26" fill="#F3EDE4"/><circle cx="420" cy="160" r="20" fill="#E0A33B"/>
+    <circle cx="500" cy="160" r="26" fill="#F3EDE4"/><circle cx="500" cy="160" r="20" fill="#E0A33B"/>
+  </g>
+  <!-- the waiter walking between -->
+  <path d="M270 300a34 20 0 0 1 68 0" fill="#B3A89C"/><circle cx="304" cy="278" r="22" fill="#F3EDE4"/>
+  <rect x="330" y="292" width="36" height="26" fill="#F3EDE4"/><circle cx="348" cy="305" r="8" fill="#E0A33B"/>
+</svg>

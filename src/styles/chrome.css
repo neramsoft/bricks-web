@@ -1,0 +1,369 @@
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -80px;
+  z-index: 60;
+  background: var(--amber);
+  color: var(--on-amber);
+  padding: 12px 16px;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+/* header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+}
+.nav {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.nav-logo img,
+.nav-name {
+  height: 44px;
+  width: auto;
+}
+.nav-name {
+  font-family: var(--font-display-stack);
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  display: inline-flex;
+  align-items: center;
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.nav-links {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  font-size: 15px;
+  color: var(--muted);
+}
+.nav-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.nav-links a:hover {
+  color: var(--text);
+}
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.nav .btn {
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+.lang {
+  display: flex;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.lang a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  color: var(--muted);
+}
+.lang a:hover {
+  color: var(--text);
+}
+/* the burger is CSS only: a checkbox, so the menu works without script */
+.nav-toggle {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.nav-burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  background: var(--raised);
+}
+.nav-burger span,
+.nav-burger span::before,
+.nav-burger span::after {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  position: relative;
+  content: "";
+}
+.nav-burger span::before {
+  position: absolute;
+  top: -6px;
+}
+.nav-burger span::after {
+  position: absolute;
+  top: 6px;
+}
+.nav-toggle:focus-visible + .nav-burger {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+@media (max-width: 1020px) {
+  .nav-burger {
+    display: flex;
+  }
+  .nav-right {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--header-h);
+    background: var(--bg);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 8px clamp(16px, 3vw, 40px) 24px;
+    border-bottom: var(--mortar) solid var(--surface);
+  }
+  .nav-toggle:checked ~ .nav-right {
+    display: flex;
+  }
+  .nav-links {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    font-size: 18px;
+  }
+  .nav-links a {
+    min-height: 52px;
+  }
+  .nav-buttons .btn {
+    flex: 1;
+  }
+}
+
+/* breadcrumbs */
+.crumbs {
+  padding-block: 8px 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.crumbs li + li::before {
+  content: "/";
+  margin-right: 8px;
+  color: var(--faint);
+}
+.crumbs a {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+}
+.crumbs a:hover {
+  color: var(--text);
+}
+.crumbs [aria-current="page"] {
+  color: var(--text);
+}
+
+.page-title {
+  padding-block: clamp(32px, 6vw, 72px) 0;
+}
+.preview-banner {
+  background: var(--amber);
+  color: var(--on-amber);
+  padding: 10px 16px;
+  font-weight: 600;
+  text-align: center;
+}
+.status-page {
+  min-height: 52svh;
+  padding-block: clamp(48px, 10vh, 120px);
+}
+.status-page p {
+  margin-top: 20px;
+  max-width: 48ch;
+  color: var(--muted);
+}
+.status-page .btn {
+  margin-top: 28px;
+}
+
+/* footer: the name built from blocks */
+.site-footer {
+  padding-block: 0 32px;
+}
+.footer-blocks {
+  display: flex;
+  gap: var(--mortar);
+  height: 34svh;
+  align-items: flex-end;
+}
+.footer-blocks span {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--brick);
+  overflow: hidden;
+  font-family: var(--font-display-stack);
+  font-style: normal;
+  font-weight: 800;
+  color: var(--bg);
+  font-size: clamp(56px, 13vw, 220px);
+  line-height: 0.8;
+  padding-bottom: 0.05em;
+}
+.footer-blocks span:nth-child(2),
+.footer-blocks span:nth-child(4),
+.footer-blocks span:nth-child(6) {
+  background: var(--surface);
+  color: var(--text);
+}
+.footer-blocks span:nth-child(1) {
+  height: 100%;
+}
+.footer-blocks span:nth-child(2) {
+  height: 80%;
+}
+.footer-blocks span:nth-child(3) {
+  height: 90%;
+}
+.footer-blocks span:nth-child(4) {
+  height: 70%;
+}
+.footer-blocks span:nth-child(5) {
+  height: 85%;
+}
+.footer-blocks span:nth-child(6) {
+  height: 75%;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  margin-top: 56px;
+  font-size: 15px;
+}
+.footer-col {
+  grid-column: span 2;
+}
+.footer-col h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--faint);
+  margin-bottom: 6px;
+}
+.footer-col a,
+.footer-contact a {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  color: var(--muted);
+}
+.footer-col a:hover,
+.footer-contact a:hover {
+  color: var(--text);
+}
+.footer-contact {
+  grid-column: span 3;
+}
+.footer-address {
+  grid-column: 9 / 13;
+  color: var(--muted);
+  font-style: normal;
+}
+.footer-address b {
+  color: var(--text);
+  font-weight: 600;
+}
+.footer-address .hours-today {
+  display: block;
+  margin-top: 8px;
+}
+.footer-last {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 56px;
+  font-size: 14px;
+  color: var(--muted);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.footer-last a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .footer-blocks {
+    height: 22svh;
+  }
+  .footer-col {
+    grid-column: span 6;
+  }
+  .footer-contact,
+  .footer-address {
+    grid-column: 1 / 13;
+  }
+}
+
+/* the sticky phone bar: Meni / Rezerviši / Pozovi */
+.mbar {
+  display: none;
+}
+@media (max-width: 760px) {
+  .mbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    background: var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mbar a {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .mbar a.primary {
+    background: var(--brick);
+    color: #fff;
+  }
+  body {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+}
