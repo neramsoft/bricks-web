@@ -5,6 +5,7 @@ describe("parseEnv", () => {
   it("uses the development ports outside production", () => {
     expect(parseEnv({}, false)).toEqual({
       API_URL: "http://localhost:3001",
+      PUBLIC_API_URL: "http://localhost:3001",
       SITE_URL: "http://localhost:3000",
       TRUSTED_PROXY_HOPS: 0,
     });
@@ -29,11 +30,27 @@ describe("parseEnv", () => {
       ),
     ).toEqual({
       API_URL: "http://api:3001",
+      PUBLIC_API_URL: "http://api:3001",
       SITE_URL: "https://bricks.ba",
       REVALIDATE_SECRET: "whsec_abc",
       MEDIA_PUBLIC_URL: "https://media.test",
       TRUSTED_PROXY_HOPS: 1,
     });
+  });
+
+  it("takes the browser's API address from PUBLIC_API_URL, else from API_URL", () => {
+    const set = parseEnv(
+      {
+        API_URL: "http://api:3001",
+        SITE_URL: "https://bricks.ba",
+        PUBLIC_API_URL: "https://api.bricks.ba/",
+      },
+      true,
+    );
+    expect(set.API_URL).toBe("http://api:3001");
+    expect(set.PUBLIC_API_URL).toBe("https://api.bricks.ba");
+    expect(parseEnv({ PUBLIC_API_URL: "" }, false).PUBLIC_API_URL).toBe("http://localhost:3001");
+    expect(() => parseEnv({ PUBLIC_API_URL: "ftp://x" }, false)).toThrow(/PUBLIC_API_URL/);
   });
 
   it("counts an empty value as unset", () => {

@@ -31,6 +31,15 @@ const config: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      // A table's page follows the venue's state and holds an order's status: never stored, never
+      // indexed (robots.txt is the CMS's and leaves it crawlable, so the crawler can read this).
+      {
+        source: "/s/:path*",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, follow" },
+        ],
+      },
       // A preview shows a draft: never stored, never indexed.
       {
         source: "/preview",

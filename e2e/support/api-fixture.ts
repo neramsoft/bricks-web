@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { deflateSync } from "node:zlib";
 import type { ApiComponents } from "@probiz/sdk";
 import { buildFixtures, MEDIA_PATH, type Fixtures } from "./fixtures.ts";
+import { advance, handleOrdering, newOrderingState } from "./ordering-fixture.ts";
 
 // A small stand-in for the ProBiz CMS public API (docs/decisions/0001 F8): the endpoints this site
 // reads, answering the typed fixtures, plus a log of what the site POSTs (form submissions, the
@@ -93,6 +94,9 @@ const error = (statusCode: number, code: string, message: string, extra: object 
   ...extra,
 });
 
+/** The origins the site is served from in the tests (SITE_URL of the web server). */
+const SITE_ORIGINS = ["http://127.0.0.1:4011", "http://localhost:4011"];
+
 const ROBOTS = "User-agent: *\nAllow: /\n\nSitemap: http://127.0.0.1:4011/sitemap.xml\n";
 
 function readBody(request: IncomingMessage): Promise<string> {
@@ -130,6 +134,7 @@ export function validateReservation(values: Record<string, unknown>) {
 export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise<FixtureApi> {
   const mediaBase = `http://${host}:${port}`;
   const posts: Recorded[] = [];
+  const ordering = newOrderingState();
 
   const respond = (
     response: ServerResponse,
@@ -144,10 +149,35 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
   const server = createServer(async (request, response) => {
     const url = new URL(request.url ?? "/", mediaBase);
     const path = url.pathname;
+    // CORS as the CMS's: the site's origin only (SITE_URL), any requested header, Retry-After readable.
+    const origin = String(request.headers.origin ?? "");
+    if (SITE_ORIGINS.includes(origin)) {
+      response.setHeader("access-control-allow-origin", origin);
+      response.setHeader("vary", "Origin");
+      response.setHeader("access-control-expose-headers", "Retry-After");
+    }
+    if (request.method === "OPTIONS") {
+      response.writeHead(
+        SITE_ORIGINS.includes(origin) ? 204 : 403,
+        SITE_ORIGINS.includes(origin)
+          ? {
+              "access-control-allow-methods": "GET,POST,OPTIONS",
+              "access-control-allow-headers": String(
+                request.headers["access-control-request-headers"] ?? "",
+              ),
+            }
+          : {},
+      );
+      return response.end();
+    }
     const locale = url.searchParams.get("locale") ?? "bs";
     // Fresh dates and hours on every answer: "open now" and "next event" follow the real clock.
     const fixtures: Fixtures = buildFixtures(mediaBase);
     const json = (status: number, body: unknown) => respond(response, status, body);
+    const sendWith = (status: number, body: unknown, headers: Record<string, string> = {}) => {
+      for (const [key, value] of Object.entries(headers)) response.setHeader(key, value);
+      respond(response, status, body);
+    };
 
     if (request.method === "GET" && path.startsWith(`${MEDIA_PATH}/`)) {
       const name = path.slice(MEDIA_PATH.length + 1).replace(/\.png$/, "");
@@ -159,6 +189,19 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
     if (path === "/__posts") return json(200, posts);
     if (path === "/__reset") {
       posts.length = 0;
+      Object.assign(ordering, newOrderingState());
+      return json(200, { ok: true });
+    }
+    if (path === "/__ordering/advance") {
+      advance(
+        ordering,
+        (url.searchParams.get("to") as never) ?? null,
+        url.searchParams.get("reason"),
+      );
+      return json(200, { ok: true });
+    }
+    if (path === "/__ordering/sse") {
+      ordering.sseDown = url.searchParams.get("down") === "1";
       return json(200, { ok: true });
     }
 
@@ -174,6 +217,10 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
         Object.entries(request.headers).map(([key, value]) => [key, String(value)]),
       );
       posts.push({ path: `${path}${url.search}`, headers, body });
+
+      if (handleOrdering(ordering, request, path, locale, body, sendWith, response)) {
+        return;
+      }
 
       const submission = /^\/v1\/public\/forms\/([^/]+)\/submissions$/.exec(path);
       if (submission) {
@@ -198,6 +245,7 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
     }
 
     if (request.method !== "GET") return json(405, error(405, "METHOD_NOT_ALLOWED", "No"));
+    if (handleOrdering(ordering, request, path, locale, undefined, sendWith, response)) return;
 
     switch (path) {
       case "/v1/public/site":
@@ -205,7 +253,9 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
       case "/v1/public/menus":
         return json(200, fixtures.menus(locale));
       case "/v1/public/modules":
-        return json(200, { modules: ["menu", "events", "locations", "gallery", "forms"] });
+        return json(200, {
+          modules: ["menu", "events", "locations", "gallery", "forms", "ordering"],
+        });
       case "/v1/public/paths": {
         const items: S["PublicPath"][] = [...fixtures.pages.keys()].map((key) => {
           const [pageLocale, ...rest] = key.split(":");

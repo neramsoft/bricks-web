@@ -18,6 +18,13 @@ const schema = z.object({
    * sends to the CMS. Never sent to a browser.
    */
   REVALIDATE_SECRET: z.string().min(1).optional(),
+  /**
+   * The CMS API's address as the visitor's browser reaches it (`https://api.bricks.ba`), where the
+   * table-ordering page sends orders from the browser (docs/decisions/0003). Read on the server
+   * and handed to the page as a prop, never `NEXT_PUBLIC`, so one image serves any install.
+   * Defaults to `API_URL`.
+   */
+  PUBLIC_API_URL: url.optional(),
   /** The host serving the CMS's media. Optional: the API's host is allowed anyway. */
   MEDIA_PUBLIC_URL: url.optional(),
   /**
@@ -31,7 +38,7 @@ const schema = z.object({
     .default(0),
 });
 
-export type Env = z.infer<typeof schema>;
+export type Env = Omit<z.infer<typeof schema>, "PUBLIC_API_URL"> & { PUBLIC_API_URL: string };
 
 const DEV_DEFAULTS = { API_URL: "http://localhost:3001", SITE_URL: "http://localhost:3000" };
 
@@ -57,7 +64,7 @@ export function parseEnv(source: Record<string, string | undefined>, production:
     );
     throw new Error(`Invalid website settings: ${problems.join("; ")}`);
   }
-  return result.data;
+  return { ...result.data, PUBLIC_API_URL: result.data.PUBLIC_API_URL ?? result.data.API_URL };
 }
 
 let cached: Env | undefined;

@@ -5,10 +5,12 @@ import { fontClassNames } from "@/lib/fonts";
 export function RootShell({
   locale,
   brandCss,
+  bodyClassName,
   children,
 }: {
   locale: string;
   brandCss: string;
+  bodyClassName?: string;
   children: ReactNode;
 }) {
   return (
@@ -16,7 +18,7 @@ export function RootShell({
       {/* The App Router's root layout may hold <head>; it carries the brand colours. */}
       {/* eslint-disable-next-line @next/next/no-head-element */}
       <head>{brandCss ? <style>{brandCss}</style> : null}</head>
-      <body>{children}</body>
+      <body className={bodyClassName}>{children}</body>
     </html>
   );
 }
