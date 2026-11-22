@@ -47,6 +47,15 @@ export const bs: Messages = {
     nextDay: "Sljedeće: {title}, {day}",
     todayAllDay: "Danas: {title}",
   },
+  lightbox: {
+    dialog: "Galerija, puna veličina",
+    previous: "Prethodna fotografija",
+    next: "Sljedeća fotografija",
+    close: "Zatvori",
+    counter: "{n} / {total}",
+    open: "{alt}: otvori u punoj veličini",
+    openUntitled: "Otvori fotografiju u punoj veličini",
+  },
   blocks: {
     closed: "Zatvoreno",
     hoursExceptions: "Izuzeci",
