@@ -28,6 +28,7 @@ export function GalleryEmbed({ block, ctx }: BlockProps<"galleryEmbed">) {
           layout={d.layout ?? "grid"}
           columns={d.columns ?? 3}
           label={heading}
+          messages={ctx.messages}
         />
       ) : null}
       {videos.length > 0 ? (

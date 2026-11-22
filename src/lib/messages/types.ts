@@ -47,6 +47,15 @@ export interface Messages {
     nextDay: string;
     todayAllDay: string;
   };
+  lightbox: {
+    dialog: string;
+    previous: string;
+    next: string;
+    close: string;
+    counter: string;
+    open: string;
+    openUntitled: string;
+  };
   blocks: {
     closed: string;
     hoursExceptions: string;
