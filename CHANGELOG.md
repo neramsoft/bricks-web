@@ -6,6 +6,12 @@ Lowest ProBiz CMS version: 1.0.0 (README.md).
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-11-22
+
+### Added
+
+- Gallery photos open full size: a click (or Enter) on a picture of the `gallery` and `galleryEmbed` blocks opens it in a native dialog with a counter, previous and next, arrow keys, swipe on phones, Esc, the close button or a click beside the picture; focus returns to the picture. The grid stays server-rendered (#10).
+
 ## [1.0.1] - 2026-11-20
 
 ### Fixed
