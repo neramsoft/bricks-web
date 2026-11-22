@@ -1,6 +1,9 @@
 import type { CSSProperties } from "react";
 import type { PublicImage } from "@probiz/sdk";
+import { fill } from "@/lib/format";
+import type { Messages } from "@/lib/messages";
 import { CmsImage } from "./cms-image";
+import { Lightbox, type LightboxItem } from "./lightbox";
 import { Section, SectionHead } from "./section";
 import type { BlockProps } from "./props";
 
@@ -15,7 +18,9 @@ export function PictureGrid({
   layout,
   columns,
   label,
+  messages,
 }: {
+  messages: Messages;
   label?: string | undefined;
   pictures: readonly GalleryPicture[];
   layout: "grid" | "masonry" | "carousel";
@@ -25,27 +30,61 @@ export function PictureGrid({
     layout === "carousel"
       ? "(min-width: 421px) 420px, 78vw"
       : `(min-width: 861px) ${Math.round(100 / (layout === "masonry" ? 4 : columns))}vw, 50vw`;
+  const shown = pictures.flatMap((picture) =>
+    picture.image ? [{ image: picture.image, caption: picture.caption ?? null }] : [],
+  );
+  const items: LightboxItem[] = shown.map(({ image, caption }) => ({
+    url: image.url,
+    width: image.width,
+    height: image.height,
+    alt: image.alt ?? "",
+    caption,
+    vector: image.mimeType === "image/svg+xml",
+  }));
+  const text = messages.lightbox;
   return (
-    <div
-      className={`gal-grid ${layout}`}
-      style={{ "--cols": layout === "masonry" ? 4 : columns } as CSSProperties}
-      {...(layout === "carousel" && label
-        ? { tabIndex: 0, role: "group", "aria-label": label }
-        : {})}
+    <Lightbox
+      items={items}
+      labels={{
+        dialog: text.dialog,
+        previous: text.previous,
+        next: text.next,
+        close: text.close,
+        counter: text.counter,
+      }}
     >
-      {pictures.map((picture, index) =>
-        picture.image ? (
+      <div
+        className={`gal-grid ${layout}`}
+        style={{ "--cols": layout === "masonry" ? 4 : columns } as CSSProperties}
+        {...(layout === "carousel" && label
+          ? { tabIndex: 0, role: "group", "aria-label": label }
+          : {})}
+      >
+        {shown.map(({ image, caption }, index) => (
           <figure key={index} className="ph" data-reveal>
-            <CmsImage image={picture.image} sizes={sizes} cover />
-            {picture.caption ? <figcaption>{picture.caption}</figcaption> : null}
+            <button
+              type="button"
+              className="ph-open"
+              data-lightbox-index={index}
+              aria-label={
+                image.alt
+                  ? fill(text.open, { alt: image.alt })
+                  : caption
+                    ? fill(text.open, { alt: caption })
+                    : text.openUntitled
+              }
+            >
+              <CmsImage image={image} sizes={sizes} cover />
+            </button>
+            {caption ? <figcaption>{caption}</figcaption> : null}
           </figure>
-        ) : null,
-      )}
-    </div>
+        ))}
+      </div>
+    </Lightbox>
   );
 }
 
-export function Gallery({ block }: BlockProps<"gallery">) {
+export function Gallery({ block, ctx }: BlockProps<"gallery">) {
   const d = block.data;
   const pictures = d.items.map((item) => ({ image: item.image ?? null, caption: item.caption }));
   if (pictures.every((picture) => !picture.image)) return null;
@@ -57,6 +96,7 @@ export function Gallery({ block }: BlockProps<"gallery">) {
         layout={d.layout ?? "grid"}
         columns={d.columns ?? 3}
         label={d.heading}
+        messages={ctx.messages}
       />
     </Section>
   );

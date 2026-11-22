@@ -691,7 +691,8 @@ export function buildFixtures(mediaBase: string, now = new Date()): Fixtures {
           items: ["bar-night", "pour", "garden", "band", "espresso", "inside", "entrance"].map(
             (name, index) => ({
               mediaId: uuid(7200 + index),
-              image: img(`gallery-${name}`, 900, 700, null),
+              image: img(`gallery-${name}`, 900, 700, `Fotografija ${index + 1}`),
+              ...(index === 1 ? { caption: "Točenje" } : {}),
             }),
           ),
         },

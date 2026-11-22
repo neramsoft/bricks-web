@@ -47,6 +47,15 @@ export const en: Messages = {
     nextDay: "Next: {title}, {day}",
     todayAllDay: "Today: {title}",
   },
+  lightbox: {
+    dialog: "Gallery, full size",
+    previous: "Previous photo",
+    next: "Next photo",
+    close: "Close",
+    counter: "{n} / {total}",
+    open: "{alt}: open full size",
+    openUntitled: "Open photo full size",
+  },
   blocks: {
     closed: "Closed",
     hoursExceptions: "Exceptions",
