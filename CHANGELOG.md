@@ -6,6 +6,8 @@ Lowest ProBiz CMS version: 1.0.0 (README.md).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-23
+
 ### Added
 
 - `/llms.txt` (llmstxt.org): Markdown built from the CMS (business name and description, address, opening hours in words, what a visitor can do from the switched-on modules, links to the menus' and pages' addresses in every language, the sitemap). Rebuilt from the cached, tagged CMS reads, so the revalidation webhook refreshes it; the last good text is served while the CMS cannot be read, a plain 404 while indexing is off.
