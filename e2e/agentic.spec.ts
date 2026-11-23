@@ -16,6 +16,8 @@ test.describe("llms.txt", () => {
     expect(text).toMatch(/^> .+/m);
     expect(text).toContain("## Bosanski");
     expect(text).toContain("## English");
+    // The home page carries the reservation form; forms are core, not in the module list.
+    expect(text).toContain("rezervisati sto");
     const links = [...text.matchAll(/\[[^\]]+\]\((http[^)]+)\)/g)].map((m) => m[1]!);
     expect(links.length).toBeGreaterThan(0);
     expect(links).toContain("http://127.0.0.1:4011/sitemap.xml");

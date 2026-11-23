@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { formatMoney } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
+import { ChipMarks } from "@/menu/chips";
+import { parseDescription } from "@/menu/description";
 import { MAX_QTY, canAddRow, qtyOf, type CartLine } from "./cart";
 import { Stepper } from "./stepper";
 import type { OrderingMenu, OrderingPage } from "./types";
@@ -79,6 +81,7 @@ export function OrderMenu({ page, lines, disabled, messages, onAdd, onRemove }: 
             <ul className="ord-items">
               {section.items.map((item) => {
                 const several = item.prices.length > 1;
+                const { prose, chips } = parseDescription(item.description);
                 const off = disabled || item.unavailable;
                 return (
                   <li key={item.itemKey} className="ord-row" data-unavailable={item.unavailable}>
@@ -87,7 +90,12 @@ export function OrderMenu({ page, lines, disabled, messages, onAdd, onRemove }: 
                       {!several && item.prices[0] ? (
                         <div className="ord-p">{money(item.prices[0].amount)}</div>
                       ) : null}
-                      {item.description ? <div className="ord-note">{item.description}</div> : null}
+                      {prose.length > 0 ? <div className="ord-note">{prose.join(" ")}</div> : null}
+                      {chips.length > 0 ? (
+                        <div className="ord-chips">
+                          <ChipMarks chips={chips} />
+                        </div>
+                      ) : null}
                       {item.unavailable ? (
                         <div className="ord-off">{messages.unavailableItem}</div>
                       ) : null}

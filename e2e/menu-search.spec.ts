@@ -35,6 +35,15 @@ test.describe("menu search", () => {
     expect(requests.filter((url) => url.includes("/v1/") || url.includes("_rsc"))).toEqual([]);
   });
 
+  test("finds a dish by the word on its chip", async ({ page }) => {
+    await page.goto("/");
+    const beer = page.locator("#beer");
+    await beer.getByRole("searchbox").fill("točeno");
+    const dishes = beer.locator(".menu-item:not([hidden])");
+    await expect(dishes).toHaveCount(1);
+    await expect(dishes).toContainText("Heineken točeno");
+  });
+
   test("one menu's search does not touch the other", async ({ page }) => {
     await page.goto("/");
     await page.locator("#coffee").getByRole("searchbox").fill("espresso");

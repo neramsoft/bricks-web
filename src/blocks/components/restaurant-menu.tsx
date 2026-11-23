@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { availabilityText } from "@/menu/availability";
+import { splitSummary } from "@/menu/summary";
 import { MenuSearch } from "@/menu/menu-search";
 import { MenuLegend, MenuSections } from "@/menu/menu-sections";
 import { RichTextView } from "./rich-text";
@@ -20,6 +21,7 @@ export function RestaurantMenu({ block, ctx }: BlockProps<"restaurantMenu">) {
   const showAllergens = d.showAllergens ?? true;
   const layout = d.layout ?? "list";
   const hasNote = menu.note && Array.isArray(menu.note.content) && menu.note.content.length > 0;
+  const { lead, note } = splitSummary(menu.summary);
   const listId = `${block.id}-list`;
   const heading = d.heading ?? menu.title;
   return (
@@ -33,7 +35,12 @@ export function RestaurantMenu({ block, ctx }: BlockProps<"restaurantMenu">) {
         <h2 className="h-chapter" id={`${block.id}-h`} data-reveal>
           {heading}
         </h2>
-        {menu.summary ? <p data-reveal>{menu.summary}</p> : null}
+        {lead ? <p data-reveal>{lead}</p> : null}
+        {note ? (
+          <p className="lead-note" data-reveal>
+            {note}
+          </p>
+        ) : null}
         {when ? (
           <p className="when" data-reveal>
             {when}

@@ -6,6 +6,17 @@ Lowest ProBiz CMS version: 1.0.0 (README.md).
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-11-23
+
+### Added
+
+- Menu labels as chips: the segments of a dish's description joined with " · " are drawn as chips like the prototype's (the ABV chip, the green 0 % chip, labels such as "točeno"), on the site and on the table-ordering menu; a line break in a menu's summary draws the last line as the muted line under the lead. Both are conventions on the CMS's text (docs/decisions/0004).
+
+### Fixed
+
+- Footer: the legal links sit with the copyright line on the left instead of floating in the middle; "Back to top" stays on the right. On phones they stack under the copyright.
+- `/llms.txt` names booking a table when a public page carries a form block. It used to look for a `forms` module, but forms are part of the CMS core and never appear in the module list, so the sentence was always missing.
+
 ## [1.0.3] - 2026-11-23
 
 ### Added

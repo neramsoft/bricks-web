@@ -134,23 +134,26 @@ export function Footer({
         ) : null}
       </div>
       <div className="footer-last">
-        <span>
-          © {new Date().getFullYear()} {name}. {messages.rights}{" "}
-          <a href="https://skymedia-agency.com" target="_blank" rel="noopener">
-            {messages.poweredBy}
-          </a>
-        </span>
-        {legalMenu ? (
-          <nav aria-label={messages.legalNavigation}>
-            <ul style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-              {legalMenu.items.map((item) => (
-                <li key={item.id}>
-                  <ItemLink item={item} />
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ) : null}
+        {/* The copyright and the legal links read as one line on the left; "back to top" is on the right. */}
+        <div className="footer-legal">
+          <span>
+            © {new Date().getFullYear()} {name}. {messages.rights}{" "}
+            <a href="https://skymedia-agency.com" target="_blank" rel="noopener">
+              {messages.poweredBy}
+            </a>
+          </span>
+          {legalMenu ? (
+            <nav aria-label={messages.legalNavigation}>
+              <ul className="footer-legal-links">
+                {legalMenu.items.map((item) => (
+                  <li key={item.id}>
+                    <ItemLink item={item} />
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
+        </div>
         <a className="btn sm quiet" href="#top">
           {messages.top}
         </a>

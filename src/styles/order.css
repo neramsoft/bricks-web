@@ -186,6 +186,28 @@
   color: var(--faint);
   margin-top: 2px;
 }
+.ord-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.ord-chips i {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: var(--raised);
+  color: var(--muted);
+}
+.ord-chips i.abv {
+  background: var(--raised-2);
+  color: var(--text);
+}
+.ord-chips i.zero {
+  background: var(--positive);
+  color: var(--bg);
+}
 .ord-off {
   font-size: 13px;
   color: var(--danger);
