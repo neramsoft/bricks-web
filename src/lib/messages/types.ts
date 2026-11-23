@@ -53,6 +53,7 @@ export interface Messages {
     next: string;
     close: string;
     counter: string;
+    loading: string;
     open: string;
     openUntitled: string;
   };

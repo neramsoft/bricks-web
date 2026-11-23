@@ -53,6 +53,7 @@ export const en: Messages = {
     next: "Next photo",
     close: "Close",
     counter: "{n} / {total}",
+    loading: "Loading photo",
     open: "{alt}: open full size",
     openUntitled: "Open photo full size",
   },
