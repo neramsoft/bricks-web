@@ -9,6 +9,13 @@ import type { RedirectDecision } from "./redirects";
 
 export const VERDICT_TTL_MS = 30_000;
 
+/**
+ * How long past its lifetime the list of languages and the list of live addresses may still be
+ * answered from while a fresh one is read in the background: no request waits for the API
+ * because a lifetime ran out (only the first one after a start, or after a webhook cleared them).
+ */
+export const STALE_MS = 60 * 60_000;
+
 interface State {
   verdicts: TtlCache<{ kind: "live" } | { kind: "missing" } | RedirectDecision>;
   languages: TtlCache<LocaleSet>;
@@ -18,6 +25,8 @@ interface State {
   pathsUnavailable: TtlCache<true>;
   /** The read of the list in progress, shared by concurrent requests. */
   loading: Promise<ReadonlySet<string> | null> | undefined;
+  /** The read of the languages in progress (a background refresh), shared by concurrent requests. */
+  loadingLanguages: Promise<LocaleSet | null> | undefined;
   /** Goes up when the memories are cleared, so a read that started before is not stored. */
   generation: number;
 }
@@ -32,6 +41,7 @@ export function proxyState(): State {
     paths: new TtlCache(5 * 60_000, 1),
     pathsUnavailable: new TtlCache(VERDICT_TTL_MS, 1),
     loading: undefined,
+    loadingLanguages: undefined,
     generation: 0,
   };
   return holder[KEY];
@@ -45,5 +55,6 @@ export function clearProxyState(): void {
   state.paths.clear();
   state.pathsUnavailable.clear();
   state.loading = undefined;
+  state.loadingLanguages = undefined;
   state.generation += 1;
 }

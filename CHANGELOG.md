@@ -6,6 +6,20 @@ Lowest ProBiz CMS version: 1.0.0 (README.md).
 
 ## [Unreleased]
 
+### Added
+
+- `/llms.txt` (llmstxt.org): Markdown built from the CMS (business name and description, address, opening hours in words, what a visitor can do from the switched-on modules, links to the menus' and pages' addresses in every language, the sitemap). Rebuilt from the cached, tagged CMS reads, so the revalidation webhook refreshes it; the last good text is served while the CMS cannot be read, a plain 404 while indexing is off.
+
+### Changed
+
+- Images load from the CMS's ready WEBP variants on the media origin (Cloudflare) instead of being resized by the site's server; blur-up placeholders; lightbox preloads neighbours (#13).
+
+### Fixed
+
+- PageSpeed, Agentic Browsing: `/.well-known/*`, dotfiles and file kinds the site never serves (`*.php`, `*.json`, `*.txt`, `*.xml` ...) get a tiny plain 404 from the proxy, with no CMS call and no page render, and are not reported to the CMS's 404 log. robots.txt, sitemap.xml and llms.txt are unaffected.
+- A slow 404 for an address the visitor really mistyped: the proxy no longer waits for the API when the cached list of languages (one minute) or of live addresses (five minutes) runs out; the old one answers while a new one is read in the background.
+- PageSpeed, accessibility: heading order. The titles inside a block (`features`, `locationList`, `eventList`, the opening hours' exceptions) are one level below the block's heading, and `h2` when the block has no heading, so the home page no longer goes from `h1` to `h3`.
+
 ## [1.0.2] - 2026-11-22
 
 ### Added

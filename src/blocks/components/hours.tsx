@@ -1,6 +1,7 @@
 import type { ApiComponents } from "@probiz/sdk";
 import { dayMonth, fill, weekdayName, weekdayOf } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
+import type { HeadingTag } from "../heading-level";
 
 type Hours = ApiComponents["schemas"]["PublicOpeningHours"];
 type Interval = ApiComponents["schemas"]["TimeInterval"];
@@ -24,13 +25,17 @@ export function HoursList({
   messages,
   timeZone,
   showExceptions = true,
+  subHeading = "h3",
 }: {
   hours: Hours;
   locale: string;
   messages: Messages;
   timeZone: string;
   showExceptions?: boolean;
+  /** The element of the exceptions' title: one level below the block's heading (itemHeading). */
+  subHeading?: HeadingTag;
 }) {
+  const SubHeading = subHeading;
   const today = weekdayOf(new Date(), timeZone);
   const exceptions = showExceptions ? (hours.exceptions ?? []) : [];
   return (
@@ -52,7 +57,7 @@ export function HoursList({
       </dl>
       {exceptions.length > 0 ? (
         <>
-          <h3 className="hours-sub">{messages.blocks.hoursExceptions}</h3>
+          <SubHeading className="hours-sub">{messages.blocks.hoursExceptions}</SubHeading>
           <dl className="hours-wk">
             {exceptions.map((exception) => (
               <div key={exception.date} style={{ display: "contents" }}>

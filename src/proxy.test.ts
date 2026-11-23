@@ -108,4 +108,50 @@ describe("proxy", () => {
     const response = await ask("/meni");
     expect(response.headers.get("x-middleware-request-x-site-path")).toBe("/meni");
   });
+
+  it("answers an address the site never serves with a plain 404 and asks the CMS nothing", async () => {
+    for (const path of ["/.well-known/ard.json", "/wp-login.php", "/.env", "/en/x.json"]) {
+      const response = await ask(path);
+      expect(response.status, path).toBe(404);
+      expect(response.headers.get("content-type"), path).toContain("text/plain");
+      expect(response.headers.get("x-middleware-rewrite"), path).toBeNull();
+      expect(response.headers.get("cache-control"), path).toContain("s-maxage=");
+      expect(await response.text(), path).not.toContain("<");
+    }
+    expect(sdk.getSite).not.toHaveBeenCalled();
+    expect(sdk.getPaths).not.toHaveBeenCalled();
+    expect(sdk.resolveRedirect).not.toHaveBeenCalled();
+  });
+
+  it("lets robots.txt, sitemap.xml and llms.txt through without asking the CMS", async () => {
+    for (const path of ["/robots.txt", "/sitemap.xml", "/llms.txt"]) {
+      expect(passed(await ask(path)), path).toBe(true);
+    }
+    expect(sdk.getSite).not.toHaveBeenCalled();
+  });
+
+  it("answers a HEAD for a bot address too, and leaves a POST alone", async () => {
+    expect((await ask("/x.php", "HEAD")).status).toBe(404);
+    expect(passed(await ask("/x.php", "POST"))).toBe(true);
+  });
+
+  it("does not wait for the API when the cached languages or addresses ran out", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      expect(passed(await ask("/meni"))).toBe(true);
+      expect(sdk.getSite).toHaveBeenCalledTimes(1);
+      expect(sdk.getPaths).toHaveBeenCalledTimes(1);
+      // Past both lifetimes, and the API now hangs: the visitor still gets an answer at once.
+      vi.setSystemTime(Date.now() + 6 * 60_000);
+      sdk.getSite.mockReturnValue(new Promise(() => {}));
+      sdk.getPaths.mockReturnValue(new Promise(() => {}));
+      expect(passed(await ask("/en/menu"))).toBe(true);
+      expect((await ask("/nema")).headers.get("x-middleware-rewrite")).toContain("/missing/nema");
+      // The refresh was started in the background, once for each.
+      expect(sdk.getSite).toHaveBeenCalledTimes(2);
+      expect(sdk.getPaths).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

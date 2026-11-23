@@ -218,4 +218,15 @@ export interface Messages {
       other: string;
     };
   };
+  /** `llms.txt` (lib/llms-txt.ts): the text for language models, in the site's default language. */
+  llms: {
+    address: string;
+    hours: string;
+    closedDay: string;
+    can: string;
+    canMenu: string;
+    canReserve: string;
+    canOrder: string;
+    sitemap: string;
+  };
 }

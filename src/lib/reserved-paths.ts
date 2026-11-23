@@ -6,6 +6,7 @@
  */
 export const RESERVED_PATHS = [
   "api",
+  "llms.txt",
   "preview",
   "missing",
   "robots.txt",

@@ -1,6 +1,6 @@
 import { createProbizClient } from "@probiz/sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { indexPaths, livePaths, pathKey } from "./paths";
+import { indexPaths, livePaths, pathKey, PATHS_TTL_MS } from "./paths";
 import { clearProxyState } from "./proxy-state";
 
 function api(handler: (url: URL) => Response | Promise<Response>) {
@@ -77,6 +77,45 @@ describe("livePaths", () => {
     expect([...((await livePaths(client)) ?? [])]).toEqual(["bs:/p1"]);
     clearProxyState();
     expect([...((await livePaths(client)) ?? [])]).toEqual(["bs:/p2"]);
+  });
+
+  it("answers from the old list at once when its lifetime ran out, and reads a new one behind it", async () => {
+    vi.useFakeTimers();
+    try {
+      let n = 0;
+      const { client, calls } = api(() => list([{ locale: "bs", path: `/p${++n}`, type: "page" }]));
+      expect([...((await livePaths(client)) ?? [])]).toEqual(["bs:/p1"]);
+      vi.advanceTimersByTime(PATHS_TTL_MS + 1000);
+      // Not waiting: the old list comes back while the read runs.
+      expect([...((await livePaths(client)) ?? [])]).toEqual(["bs:/p1"]);
+      await vi.waitFor(() => expect(calls).toHaveLength(2));
+      await vi.advanceTimersByTimeAsync(0);
+      expect([...((await livePaths(client)) ?? [])]).toEqual(["bs:/p2"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps answering from the old list when the refresh fails, and does not hammer the API", async () => {
+    vi.useFakeTimers();
+    try {
+      let fail = false;
+      const { client, calls } = api(() =>
+        fail
+          ? Response.json({ statusCode: 500, code: "X", message: "x" }, { status: 500 })
+          : list([{ locale: "bs", path: "/a", type: "page" }]),
+      );
+      await livePaths(client);
+      vi.advanceTimersByTime(PATHS_TTL_MS + 1000);
+      fail = true;
+      expect([...((await livePaths(client)) ?? [])]).toEqual(["bs:/a"]);
+      await vi.advanceTimersByTimeAsync(0);
+      expect([...((await livePaths(client)) ?? [])]).toEqual(["bs:/a"]);
+      await livePaths(client);
+      expect(calls).toHaveLength(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("does not keep a read that was overtaken by a clear", async () => {

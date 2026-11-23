@@ -2,6 +2,7 @@ import type { BlockContext } from "./props";
 import type { RenderData } from "../types";
 import { HoursList } from "./hours";
 import { Section } from "./section";
+import { itemHeading } from "../heading-level";
 
 type Data = RenderData["openingHours"];
 
@@ -31,6 +32,7 @@ export function HoursPanel({
         messages={ctx.messages}
         timeZone={ctx.timeZone}
         showExceptions={data.showExceptions ?? true}
+        subHeading={itemHeading(Boolean(data.heading))}
       />
     </div>
   );
