@@ -63,8 +63,8 @@ const languages: LlmsLanguage[] = [
   },
 ];
 
-const build = (modules: string[] | null = ["menu", "forms", "ordering"]) =>
-  buildLlmsTxt({ siteUrl: "https://bricks.ba/", site, modules, languages });
+const build = (modules: string[] | null = ["menu", "ordering"], hasForm = true) =>
+  buildLlmsTxt({ siteUrl: "https://bricks.ba/", site, modules, hasForm, languages });
 
 describe("buildLlmsTxt", () => {
   it("starts with an H1 of the business name and a one-line summary", () => {
@@ -111,8 +111,16 @@ describe("buildLlmsTxt", () => {
   });
 
   it("names only what the switched-on modules allow, and nothing when they are unknown", () => {
-    expect(build(["menu"])).toContain("možeš pogledati meni.");
-    expect(build(null)).not.toContain("Na web stranici");
+    expect(build(["menu"], false)).toContain("možeš pogledati meni.");
+    expect(build(null, false)).not.toContain("Na web stranici");
+  });
+
+  it("names reserving when a page carries a form, although forms are not an optional module", () => {
+    // The live site's module list: forms are part of the CMS core and never in it.
+    const live = ["gallery", "events", "menu", "ordering", "locations", "mcp"];
+    expect(build(live, true)).toContain("rezervisati sto");
+    expect(build(live, false)).not.toContain("rezervisati sto");
+    expect(build(null, true)).toContain("rezervisati sto");
   });
 
   it("is Markdown with at least one link and no HTML", () => {

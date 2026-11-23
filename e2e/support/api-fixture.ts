@@ -265,7 +265,7 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
         return json(200, fixtures.menus(locale));
       case "/v1/public/modules":
         return json(200, {
-          modules: ["menu", "events", "locations", "gallery", "forms", "ordering"],
+          modules: ["menu", "events", "locations", "gallery", "ordering"],
         });
       case "/v1/public/paths": {
         const items: S["PublicPath"][] = [...fixtures.pages.keys()].map((key) => {

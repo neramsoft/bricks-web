@@ -28,6 +28,11 @@ export interface LlmsInput {
   site: PublicSite;
   /** Keys of the switched-on optional modules; null when the API could not say. */
   modules: readonly string[] | null;
+  /**
+   * Whether a public page carries a form block. Forms are part of the CMS core, not an optional
+   * module, so the module list never names them: the pages do.
+   */
+  hasForm?: boolean;
   languages: readonly LlmsLanguage[];
 }
 
@@ -75,13 +80,19 @@ export function hoursInWords(hours: Hours, locale: string, messages: Messages): 
     .join("; ");
 }
 
-/** What a visitor can do here, from the modules that are on, as a list in the language. */
-function abilities(modules: readonly string[] | null, locale: string, messages: Messages) {
-  if (!modules) return null;
+/** What a visitor can do here, from the modules that are on and the form on the pages, as a list in the language. */
+function abilities(
+  modules: readonly string[] | null,
+  hasForm: boolean,
+  locale: string,
+  messages: Messages,
+) {
+  if (!modules && !hasForm) return null;
+  const on = (key: string) => modules?.includes(key) ?? false;
   const can = [
-    modules.includes("menu") ? messages.llms.canMenu : null,
-    modules.includes("forms") ? messages.llms.canReserve : null,
-    modules.includes("ordering") ? messages.llms.canOrder : null,
+    on("menu") ? messages.llms.canMenu : null,
+    hasForm ? messages.llms.canReserve : null,
+    on("ordering") ? messages.llms.canOrder : null,
   ].filter((entry): entry is string => entry !== null);
   if (can.length === 0) return null;
   let list: string;
@@ -143,7 +154,7 @@ export function buildLlmsTxt(input: LlmsInput): string {
   const paragraph = [
     where ? fill(messages.llms.address, { address: where }) : null,
     hours ? fill(messages.llms.hours, { hours }) : null,
-    abilities(input.modules, locale, messages),
+    abilities(input.modules, input.hasForm ?? false, locale, messages),
   ].filter((entry): entry is string => entry !== null);
   if (paragraph.length > 0) out.push(paragraph.join(" "), "");
 
