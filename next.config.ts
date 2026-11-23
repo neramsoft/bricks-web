@@ -26,7 +26,10 @@ const config: NextConfig = {
     remotePatterns: hosts,
     // Only when every host is on this machine (development): see lib/media-hosts.ts.
     dangerouslyAllowLocalIP: allowLocalImages(hosts),
-    formats: ["image/avif", "image/webp"],
+    // CMS pictures use a loader that returns the CMS's own variants (lib/image-variants.ts), so
+    // the widths `next/image` asks for are the widths the CMS made.
+    deviceSizes: [320, 640, 960, 1280, 1920, 2560],
+    imageSizes: [],
   },
   async headers() {
     return [

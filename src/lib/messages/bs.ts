@@ -53,6 +53,7 @@ export const bs: Messages = {
     next: "Sljedeća fotografija",
     close: "Zatvori",
     counter: "{n} / {total}",
+    loading: "Učitavanje fotografije",
     open: "{alt}: otvori u punoj veličini",
     openUntitled: "Otvori fotografiju u punoj veličini",
   },

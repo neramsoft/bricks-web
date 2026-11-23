@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { logoSource } from "@/lib/image-variants";
 import type { ReactNode } from "react";
 import type { PublicSite } from "@probiz/sdk";
 
@@ -7,12 +8,12 @@ export function orderLogo(site: PublicSite) {
   const logo = site.brand.logoDark ?? site.brand.logoLight;
   return logo
     ? {
-        src: logo.url,
+        src: logoSource(logo, 90),
         width: logo.width,
         height: logo.height,
-        unoptimized: logo.mimeType === "image/svg+xml",
+        unoptimized: true,
       }
-    : { src: "/brand/bricks-wordmark-white.png", width: 498, height: 171, unoptimized: false };
+    : { src: "/brand/bricks-wordmark-white.png", width: 498, height: 171, unoptimized: true };
 }
 
 /** The phone-width page around a message (an invalid code, ordering switched off). Server-rendered. */

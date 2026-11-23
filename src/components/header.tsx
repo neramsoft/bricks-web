@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { logoSource } from "@/lib/image-variants";
 import Link from "next/link";
 import type { PublicMenuItem, PublicSite } from "@probiz/sdk";
 import { splitHeaderMenu } from "@/lib/header-menu";
@@ -60,12 +61,12 @@ export function Header({
         >
           {logo ? (
             <Image
-              src={logo.url}
+              // The CMS's own variant (or the vector): the optimizer has nothing to add to a logo.
+              src={logoSource(logo, 160)}
               alt=""
               width={logo.width}
               height={logo.height}
-              sizes="160px"
-              unoptimized={logo.mimeType === "image/svg+xml"}
+              unoptimized
               priority
               style={{ height: 44, width: "auto" }}
             />
@@ -76,6 +77,7 @@ export function Header({
               width={498}
               height={171}
               sizes="130px"
+              unoptimized
               priority
               style={{ height: 44, width: "auto" }}
             />

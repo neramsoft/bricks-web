@@ -180,6 +180,17 @@ export async function startFixtureApi(port: number, host = "127.0.0.1"): Promise
     };
 
     if (request.method === "GET" && path.startsWith(`${MEDIA_PATH}/`)) {
+      // A variant: /media/<name>/w<width>.webp|avif?h=<height> (PNG bytes; a browser sniffs them).
+      const variant = /^\/media\/([^/]+)\/w(\d+)\.(webp|avif)$/.exec(path);
+      if (variant) {
+        const width = Math.min(Number(variant[2]), 1600);
+        const height = Math.min(Number(url.searchParams.get("h")) || 600, 1600);
+        response.writeHead(200, {
+          "content-type": `image/${variant[3]}`,
+          "cache-control": "public, max-age=31536000, immutable",
+        });
+        return response.end(png(variant[1]!, width, height));
+      }
       const name = path.slice(MEDIA_PATH.length + 1).replace(/\.png$/, "");
       const width = Math.min(Number(url.searchParams.get("w")) || 800, 1600);
       const height = Math.min(Number(url.searchParams.get("h")) || 600, 1600);
