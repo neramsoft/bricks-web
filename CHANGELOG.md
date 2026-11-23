@@ -6,6 +6,10 @@ Lowest ProBiz CMS version: 1.0.0 (README.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Footer: the legal links sit with the copyright line on the left instead of floating in the middle; "Back to top" stays on the right. On phones they stack under the copyright.
+
 ## [1.0.3] - 2026-11-23
 
 ### Added
