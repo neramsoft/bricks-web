@@ -9,6 +9,7 @@ Lowest ProBiz CMS version: 1.0.0 (README.md).
 ### Fixed
 
 - Footer: the legal links sit with the copyright line on the left instead of floating in the middle; "Back to top" stays on the right. On phones they stack under the copyright.
+- `/llms.txt` names booking a table when a public page carries a form block. It used to look for a `forms` module, but forms are part of the CMS core and never appear in the module list, so the sentence was always missing.
 
 ## [1.0.3] - 2026-11-23
 

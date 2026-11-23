@@ -41,14 +41,25 @@ export async function llmsTxt(): Promise<string | null> {
         items.map(async (item) => {
           try {
             const page = await getPage(cms(), { locale: item.locale, path: item.path });
-            return { href: item.href, title: page.title };
+            const form = page.blocks.some((block) => block.type === "contactForm");
+            return { href: item.href, title: page.title, form };
           } catch {
             return null;
           }
         }),
       );
-      return { ...language, pages: pages.filter((page) => page !== null) };
+      const found = pages.filter((page) => page !== null);
+      return {
+        language: { ...language, pages: found.map(({ href, title }) => ({ href, title })) },
+        form: found.some((page) => page.form),
+      };
     }),
   );
-  return buildLlmsTxt({ siteUrl, site, modules, languages: withPages });
+  return buildLlmsTxt({
+    siteUrl,
+    site,
+    modules,
+    hasForm: withPages.some((entry) => entry.form),
+    languages: withPages.map((entry) => entry.language),
+  });
 }
