@@ -35,6 +35,35 @@ export interface Fixtures {
   events: S["PublicEventSummary"][];
 }
 
+/** The widths the CMS makes variants at (never above the original's width, down to the smallest). */
+const VARIANT_WIDTHS = [320, 640, 960, 1280, 1920, 2560];
+
+/** A 1x1 WEBP, standing in for the CMS's blurred placeholder. */
+export const PLACEHOLDER =
+  "data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==";
+
+/** Ready variants as the CMS makes them: WEBP and AVIF per width, served by the fixture API. */
+export function variants(
+  mediaBase: string,
+  name: string,
+  width: number,
+  height: number,
+): S["PublicImage"]["variants"] {
+  const widths = VARIANT_WIDTHS.filter((w) => w <= width);
+  if (widths.length === 0) widths.push(VARIANT_WIDTHS[0]!);
+  return (["WEBP", "AVIF"] as const).flatMap((format) =>
+    widths.map((w) => {
+      const h = Math.round((height * w) / width);
+      return {
+        width: w,
+        height: h,
+        format,
+        url: `${mediaBase}${MEDIA_PATH}/${name}/w${w}.${format.toLowerCase()}?h=${h}`,
+      };
+    }),
+  );
+}
+
 export function image(
   mediaBase: string,
   name: string,
@@ -50,9 +79,9 @@ export function image(
     caption: null,
     credit: null,
     focalPoint: { x: 0.5, y: 0.5 },
-    dominantColor: null,
-    placeholder: null,
-    variants: [],
+    dominantColor: "#3a2a20",
+    placeholder: PLACEHOLDER,
+    variants: variants(mediaBase, name, width, height),
     url: `${mediaBase}${MEDIA_PATH}/${name}.png?w=${width}&h=${height}`,
     mimeType: "image/png",
   };

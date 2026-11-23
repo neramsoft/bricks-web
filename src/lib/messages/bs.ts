@@ -53,6 +53,7 @@ export const bs: Messages = {
     next: "Sljedeća fotografija",
     close: "Zatvori",
     counter: "{n} / {total}",
+    loading: "Učitavanje fotografije",
     open: "{alt}: otvori u punoj veličini",
     openUntitled: "Otvori fotografiju u punoj veličini",
   },
@@ -261,5 +262,15 @@ export const bs: Messages = {
       network: "Nema veze s poslužiteljem. Provjeri internet i pokušaj ponovo.",
       other: "Nešto nije u redu. Pokušaj ponovo ili pozovi konobara.",
     },
+  },
+  llms: {
+    address: "Adresa: {address}.",
+    hours: "Radno vrijeme: {hours}.",
+    closedDay: "zatvoreno",
+    can: "Na web stranici možeš {list}.",
+    canMenu: "pogledati meni",
+    canReserve: "rezervisati sto",
+    canOrder: "naručiti sa stola skeniranjem QR koda",
+    sitemap: "Mapa sajta (XML)",
   },
 };

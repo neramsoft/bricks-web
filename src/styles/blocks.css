@@ -197,7 +197,7 @@
 .tile.featured {
   grid-column: span 2;
 }
-.tile h3 {
+.tile :is(h2, h3) {
   font-family: var(--font-display-stack);
   font-weight: 600;
   font-size: 20px;
@@ -603,6 +603,25 @@
   height: calc(100dvh - 72px - 64px - 48px);
   object-fit: contain;
 }
+/* Shown over the picture until it has loaded; theme colours, still under reduced motion. */
+.lb-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 3px solid var(--border);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: lb-spin 0.9s linear infinite;
+}
+@keyframes lb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .lb-figure figcaption {
   max-width: 70ch;
   font-size: 14px;
@@ -686,5 +705,9 @@
 @media (prefers-reduced-motion: reduce) {
   .lb-btn {
     transition: none;
+  }
+  /* A ring with one bright quarter, standing still. */
+  .lb-spinner {
+    animation: none;
   }
 }

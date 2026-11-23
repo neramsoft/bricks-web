@@ -53,6 +53,7 @@ export const en: Messages = {
     next: "Next photo",
     close: "Close",
     counter: "{n} / {total}",
+    loading: "Loading photo",
     open: "{alt}: open full size",
     openUntitled: "Open photo full size",
   },
@@ -260,5 +261,15 @@ export const en: Messages = {
       network: "No connection to the server. Check your internet and try again.",
       other: "Something went wrong. Try again or call a waiter.",
     },
+  },
+  llms: {
+    address: "Address: {address}.",
+    hours: "Opening hours: {hours}.",
+    closedDay: "closed",
+    can: "On the website you can {list}.",
+    canMenu: "browse the menu",
+    canReserve: "book a table",
+    canOrder: "order from your table by scanning its QR code",
+    sitemap: "Sitemap (XML)",
   },
 };

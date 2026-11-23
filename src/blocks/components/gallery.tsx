@@ -35,11 +35,13 @@ export function PictureGrid({
   );
   const items: LightboxItem[] = shown.map(({ image, caption }) => ({
     url: image.url,
+    mimeType: image.mimeType,
+    // Only the WEBP variants are loaded; the dialog's page payload need not carry the AVIF ones.
+    variants: image.variants.filter((variant) => variant.format === "WEBP"),
     width: image.width,
     height: image.height,
     alt: image.alt ?? "",
     caption,
-    vector: image.mimeType === "image/svg+xml",
   }));
   const text = messages.lightbox;
   return (
@@ -51,6 +53,7 @@ export function PictureGrid({
         next: text.next,
         close: text.close,
         counter: text.counter,
+        loading: text.loading,
       }}
     >
       <div

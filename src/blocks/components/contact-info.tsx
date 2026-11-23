@@ -3,6 +3,7 @@ import type { PublicContactInfo } from "@probiz/sdk";
 import { HoursList } from "./hours";
 import { Section, SectionHead } from "./section";
 import type { BlockProps } from "./props";
+import { itemHeading } from "../heading-level";
 
 const PLATFORM_NAMES: Record<string, string> = {
   FACEBOOK: "Facebook",
@@ -78,6 +79,7 @@ export function ContactInfo({ block, ctx }: BlockProps<"contactInfo">) {
                     locale={ctx.locale}
                     messages={ctx.messages}
                     timeZone={ctx.timeZone}
+                    subHeading={itemHeading(Boolean(d.heading))}
                   />
                 ),
               },

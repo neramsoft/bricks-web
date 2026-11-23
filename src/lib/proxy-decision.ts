@@ -2,7 +2,7 @@ import { getPage, getSite, isProbizApiError, resolveRedirect } from "@probiz/sdk
 import { splitPathname, type LocaleSet, type ParsedRoute } from "./locale";
 import { livePaths, pathKey } from "./paths";
 import { proxyBulkClient, proxyClient } from "./proxy-client";
-import { proxyState } from "./proxy-state";
+import { proxyState, STALE_MS } from "./proxy-state";
 import { decideRedirect, type RedirectDecision } from "./redirects";
 
 // What an address is, decided before anything renders (src/proxy.ts calls this):
@@ -18,15 +18,34 @@ import { decideRedirect, type RedirectDecision } from "./redirects";
 
 export type Verdict = { kind: "live" } | { kind: "missing" } | RedirectDecision;
 
-/** The site's languages, remembered for a minute. */
-export async function localeSet(): Promise<LocaleSet> {
-  const { languages } = proxyState();
-  const cached = languages.get("set");
-  if (cached) return cached;
+async function readLanguages(): Promise<LocaleSet> {
+  const state = proxyState();
+  const generation = state.generation;
   const site = await getSite(proxyClient());
   const set = { defaultLocale: site.defaultLocale, locales: site.languages.map((l) => l.code) };
-  languages.set("set", set);
+  if (generation === state.generation) state.languages.set("set", set);
   return set;
+}
+
+/**
+ * The site's languages, remembered for a minute. After that the old answer is still used while
+ * a new one is read in the background, so no visitor waits for the API to say the same again.
+ */
+export async function localeSet(): Promise<LocaleSet> {
+  const state = proxyState();
+  const cached = state.languages.getStale("set", STALE_MS);
+  if (!cached) return readLanguages();
+  if (cached.stale && !state.loadingLanguages) {
+    const generation = state.generation;
+    const refresh = readLanguages()
+      .then(() => null)
+      .catch(() => null)
+      .finally(() => {
+        if (generation === state.generation) state.loadingLanguages = undefined;
+      });
+    state.loadingLanguages = refresh;
+  }
+  return cached.value;
 }
 
 /** The one-address lookup, for an API that has no list of live addresses. */

@@ -3,17 +3,15 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type ReactNode, type TouchEvent } from "react";
 import { fill } from "@/lib/format";
+import { cmsImageLoader, hasVariants, lightboxUrl, type VariantSource } from "@/lib/image-variants";
 import { stepIndex, swipeStep } from "../lightbox-nav";
 
 /** What the lightbox needs of one picture. */
-export interface LightboxItem {
-  url: string;
+export interface LightboxItem extends VariantSource {
   width: number;
   height: number;
   alt: string;
   caption: string | null;
-  /** A vector picture has no sizes for the optimizer to choose from. */
-  vector: boolean;
 }
 
 export interface LightboxLabels {
@@ -23,15 +21,23 @@ export interface LightboxLabels {
   close: string;
   /** "{n} / {total}" */
   counter: string;
+  /** Said to screen readers while the picture loads. */
+  loading: string;
 }
 
 /**
  * The picture fills its box with `object-fit: contain`, so a click on the bars beside it still
  * hits the `img`: true when the click lies outside the picture itself.
  */
-function isOutsidePicture(img: HTMLImageElement, event: React.MouseEvent): boolean {
+function isOutsidePicture(
+  img: HTMLImageElement,
+  event: React.MouseEvent,
+  known: { width: number; height: number },
+): boolean {
   const box = img.getBoundingClientRect();
-  const { naturalWidth: w, naturalHeight: h } = img;
+  // Before the file has loaded the element has no natural size: the CMS's size has the same ratio.
+  const w = img.naturalWidth || known.width;
+  const h = img.naturalHeight || known.height;
   if (!w || !h) return false;
   const scale = Math.min(box.width / w, box.height / h);
   const width = w * scale;
@@ -64,6 +70,8 @@ export function Lightbox({
   const opener = useRef<HTMLElement | null>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const [index, setIndex] = useState<number | null>(null);
+  // The picture that has finished loading; the indicator shows until it is the current one.
+  const [loaded, setLoaded] = useState<number | null>(null);
 
   const open = index !== null;
   const count = items.length;
@@ -84,6 +92,21 @@ export function Lightbox({
     };
   }, [open]);
 
+  // The neighbours are fetched ahead, from the very address the dialog will use for them, so a
+  // step shows them from the browser's cache.
+  useEffect(() => {
+    if (index === null || count < 2) return;
+    for (const at of [stepIndex(index, 1, count), stepIndex(index, -1, count)]) {
+      const neighbour = items[at];
+      if (!neighbour) continue;
+      const href = hasVariants(neighbour)
+        ? lightboxUrl(neighbour, window.innerWidth, window.devicePixelRatio)
+        : neighbour.url;
+      // A request the browser keeps in its cache for the picture that will use it.
+      if (href) new window.Image().src = href;
+    }
+  }, [index, count, items]);
+
   const show = (target: HTMLElement, at: number) => {
     opener.current = target;
     setIndex(at);
@@ -101,6 +124,7 @@ export function Lightbox({
   // Called by Escape too: the native dialog is already closed then.
   const onClosed = () => {
     setIndex(null);
+    setLoaded(null);
     opener.current?.focus();
     opener.current = null;
   };
@@ -129,6 +153,7 @@ export function Lightbox({
   };
 
   const item = index === null ? null : items[index];
+  const variants = item ? hasVariants(item) : false;
 
   return (
     <>
@@ -145,7 +170,7 @@ export function Lightbox({
         onClick={(event) => {
           // The empty ground around the picture is the backdrop.
           const target = event.target as HTMLElement;
-          if (target instanceof HTMLImageElement && isOutsidePicture(target, event)) {
+          if (target instanceof HTMLImageElement && item && isOutsidePicture(target, event, item)) {
             event.currentTarget.close();
             return;
           }
@@ -167,12 +192,17 @@ export function Lightbox({
                 width={item.width}
                 height={item.height}
                 sizes="100vw"
-                unoptimized={item.vector}
+                // The CMS's ready variant for the width asked; a vector or unprocessed picture as it is.
+                {...(variants ? { loader: cmsImageLoader(item) } : { unoptimized: true })}
                 className="lb-img"
                 priority
+                onLoad={() => setLoaded(index)}
               />
               {item.caption ? <figcaption>{item.caption}</figcaption> : null}
             </figure>
+            {loaded !== index ? (
+              <span className="lb-spinner" role="status" aria-label={labels.loading} />
+            ) : null}
             <p className="lb-counter" aria-live="polite">
               {fill(labels.counter, { n: index + 1, total: count })}
             </p>

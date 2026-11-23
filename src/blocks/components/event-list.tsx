@@ -15,6 +15,7 @@ import {
 import { env } from "@/lib/env";
 import type { BlockContext, BlockProps } from "./props";
 import { SectionHead } from "./section";
+import { ItemTitle } from "../heading-level";
 
 function DateTile({ event, ctx }: { event: EventSummary; ctx: BlockContext }) {
   const tile = dateTile(event.startsAt, ctx.timeZone, ctx.locale);
@@ -40,11 +41,13 @@ function FeaturedEvent({
   performers,
   ctx,
   headingId,
+  hasHeading,
 }: {
   event: EventSummary;
   performers: string[];
   ctx: BlockContext;
   headingId: string;
+  hasHeading: boolean;
 }) {
   const { messages, locale, timeZone } = ctx;
   const m = messages.events;
@@ -78,7 +81,9 @@ function FeaturedEvent({
         <DateTile event={event} ctx={ctx} />
         <div className="ev-ftext">
           <p className="ev-kind">{[m.upNext, event.category].filter(Boolean).join(" · ")}</p>
-          <h3 id={headingId}>{event.title}</h3>
+          <ItemTitle hasHeading={hasHeading} id={headingId}>
+            {event.title}
+          </ItemTitle>
           <Badges event={event} ctx={ctx} />
           <dl className="ev-facts">
             {facts.map(([label, value]) => (
@@ -114,10 +119,12 @@ function EventRow({
   event,
   ctx,
   headingId,
+  hasHeading,
 }: {
   event: EventSummary;
   ctx: BlockContext;
   headingId: string;
+  hasHeading: boolean;
 }) {
   const { messages, locale, timeZone } = ctx;
   const meta = [
@@ -130,7 +137,9 @@ function EventRow({
     <li className="ev" data-event-status={event.eventStatus}>
       <DateTile event={event} ctx={ctx} />
       <div>
-        <h4 id={headingId}>{event.title}</h4>
+        <ItemTitle hasHeading={hasHeading} depth={2} id={headingId}>
+          {event.title}
+        </ItemTitle>
         <p className="meta">{meta.join(" · ")}</p>
         {event.summary ? <p>{event.summary}</p> : null}
         <Badges event={event} ctx={ctx} />
@@ -141,6 +150,22 @@ function EventRow({
         ) : null}
       </div>
     </li>
+  );
+}
+
+function MoreHeading({
+  id,
+  hasHeading,
+  children,
+}: {
+  id: string;
+  hasHeading: boolean;
+  children: string;
+}) {
+  return (
+    <ItemTitle hasHeading={hasHeading} className="ev-more-h" id={id}>
+      {children}
+    </ItemTitle>
   );
 }
 
@@ -193,13 +218,14 @@ export async function EventList({ block, ctx }: BlockProps<"eventList">) {
             performers={performers}
             ctx={ctx}
             headingId={`${block.id}-e0`}
+            hasHeading={Boolean(d.heading)}
           />
         ) : null}
         {rest.length > 0 ? (
           <div className="ev-more" data-reveal>
-            <h3 className="ev-more-h" id={`${block.id}-more`}>
+            <MoreHeading id={`${block.id}-more`} hasHeading={Boolean(d.heading)}>
               {ctx.messages.events.after}
-            </h3>
+            </MoreHeading>
             <ul className="ev-list" aria-labelledby={`${block.id}-more`}>
               {rest.map((event, index) => (
                 <EventRow
@@ -207,6 +233,7 @@ export async function EventList({ block, ctx }: BlockProps<"eventList">) {
                   event={event}
                   ctx={ctx}
                   headingId={`${block.id}-e${index + 1}`}
+                  hasHeading={Boolean(d.heading)}
                 />
               ))}
             </ul>
