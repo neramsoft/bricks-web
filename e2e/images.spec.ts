@@ -138,3 +138,20 @@ test("the lightbox shows a loading indicator until a slow picture has arrived", 
   await expect(dialog.getByRole("status", { name: "Učitavanje fotografije" })).toBeVisible();
   await expect(dialog.locator(".lb-spinner")).toHaveCount(0, { timeout: 10_000 });
 });
+
+test("a click beside a picture that is still loading closes the lightbox", async ({ page }) => {
+  // The file arrives late, so the click lands before the image has a natural size.
+  await page.route(/\/media\/[^/]+\/w\d+\.webp/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await route.continue();
+  });
+  await page.goto("/");
+  const open = page.locator("#galerija .ph-open").first();
+  await open.scrollIntoViewIfNeeded();
+  await open.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("status", { name: "Učitavanje fotografije" })).toBeVisible();
+  await dialog.click({ position: { x: 150, y: 300 } });
+  await expect(dialog).toBeHidden();
+  await expect(open).toBeFocused();
+});
