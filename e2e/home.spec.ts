@@ -74,6 +74,29 @@ test.describe("home page", () => {
       "Prirodna jabuka 0,3 l",
     );
 
+    // Labels as chips: the ABV and the zero chips, the muted line under the lead.
+    await expect(heineken.locator(".d")).toHaveText("S točionika, 0,5 l.");
+    await expect(heineken.locator(".tags i[data-chip]")).toHaveText(["5 % alk.", "točeno"]);
+    await expect(heineken.locator(".tags i.abv")).toHaveText("5 % alk.");
+    const zero = page.locator(".menu-item", { hasText: "Heineken 0%" });
+    await expect(zero.locator(".tags i.zero")).toHaveText("0 % alkohola");
+    await expect(
+      page.locator("#coffee .menu-item", { hasText: "limunada" }).locator("i[data-chip]"),
+    ).toHaveText(["Svježe cijeđeno", "domaći"]);
+    await expect(page.locator(".menu-item i.abv")).toHaveCount(1);
+    await expect(page.locator(".menu-item i.zero")).toHaveCount(1);
+    await expect(page.locator("#coffee .chapter-lead > p").first()).toHaveText(
+      /^Kafa je Julius Meinl/,
+    );
+    await expect(page.locator("#coffee .lead-note")).toHaveText(
+      "Kafu točimo od otvaranja do zatvaranja, ne samo ujutro.",
+    );
+    for (const id of ["coffee", "beer"]) {
+      await page
+        .locator(`#${id}`)
+        .screenshot({ path: `test-results/screenshots/menu-${id}-bs-1440.png` });
+    }
+
     // No script is needed for any of it: the raw HTML has the headline, the menu and the events.
     const raw = await (await page.request.get("/")).text();
     expect(raw).toContain("Coffee, Beer &amp; People.");
@@ -141,6 +164,11 @@ test.describe("home page", () => {
     await page
       .locator("#dogadjaji")
       .screenshot({ path: "test-results/screenshots/events-bs-390.png" });
+    for (const id of ["coffee", "beer"]) {
+      await page
+        .locator(`#${id}`)
+        .screenshot({ path: `test-results/screenshots/menu-${id}-bs-390.png` });
+    }
     // Nothing is wider than the screen.
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       390,

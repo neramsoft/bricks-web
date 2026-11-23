@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fill } from "@/lib/format";
+import { oneLineSummary } from "@/menu/summary";
 import { Section, SectionHead } from "./section";
 import type { BlockProps } from "./props";
 
@@ -17,7 +18,8 @@ export function RestaurantMenuList({ block, ctx }: BlockProps<"restaurantMenuLis
             <>
               <b>{menu.title}</b>
               <span>
-                {menu.summary ?? fill(ctx.messages.blocks.galleryItems, { n: menu.itemCount })}
+                {oneLineSummary(menu.summary) ??
+                  fill(ctx.messages.blocks.galleryItems, { n: menu.itemCount })}
               </span>
             </>
           );

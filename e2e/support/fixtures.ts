@@ -186,7 +186,7 @@ function menuSections(): {
       ]),
       section(2, "Prirodni sokovi", [
         item("Prirodna limunada 0,3 l", [[null, 400]], {
-          description: "Svježe cijeđeno.",
+          description: "Svježe cijeđeno · domaći",
           dietary: ["vegan"],
         }),
         item("Prirodna naranča 0,3 l", [[null, 500]], { dietary: ["vegan"] }),
@@ -202,14 +202,14 @@ function menuSections(): {
             ["0,5", 600],
           ],
           {
-            description: "S točionika.",
+            description: "S točionika, 0,5 l. · 5 % alk. · točeno",
             allergens: ["gluten"],
             recommended: true,
           },
         ),
         item("Tuzlanski pilsner 0,5 l", [[null, 450]], { allergens: ["gluten"] }),
         item("Heineken 0% 0,33 l", [[null, 550]], {
-          description: "Bezalkoholno.",
+          description: "Bezalkoholno. · 0 % alkohola",
           allergens: ["gluten"],
         }),
       ]),
@@ -221,7 +221,7 @@ function menuSections(): {
             ["0,75", 4000],
           ],
           {
-            description: "Bijelo, Hercegovina.",
+            description: "bijelo · Hercegovina",
             allergens: ["sulphites"],
           },
         ),
@@ -232,7 +232,7 @@ function menuSections(): {
             ["0,75", 4000],
           ],
           {
-            description: "Crno, Hercegovina.",
+            description: "crno · Hercegovina",
             allergens: ["sulphites"],
           },
         ),
@@ -638,8 +638,8 @@ export function buildFixtures(mediaBase: string, now = new Date()): Fixtures {
             IDS.menuDay,
             "Coffee",
             en
-              ? "Our coffee is Julius Meinl: espresso, cappuccino, macchiato. Juices are squeezed here."
-              : "Kafa je Julius Meinl: espresso, cappuccino, macchiato. Sokove cijedimo ovdje, limun, naranču i jabuku.",
+              ? "Our coffee is Julius Meinl: espresso, cappuccino, macchiato. Juices are squeezed here.\nWe pour coffee from opening to closing, not only in the morning."
+              : "Kafa je Julius Meinl: espresso, cappuccino, macchiato. Sokove cijedimo ovdje, limun, naranču i jabuku.\nKafu točimo od otvaranja do zatvaranja, ne samo ujutro.",
             day,
           ),
         },

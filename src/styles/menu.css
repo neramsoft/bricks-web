@@ -25,6 +25,7 @@
   max-width: 36ch;
   font-size: 17px;
 }
+.chapter-lead .lead-note,
 .chapter-lead .when {
   margin-top: 16px;
   color: var(--muted);
@@ -157,8 +158,19 @@
   background: var(--surface);
   color: var(--muted);
 }
-.chapter.alt .menu-item .tags i:not(.reco):not(.diet):not(.gone) {
+.chapter.alt .menu-item .tags i:not(.reco):not(.diet):not(.gone):not(.abv):not(.zero) {
   background: var(--raised);
+}
+.menu-item .tags i.abv {
+  background: var(--raised);
+  color: var(--text);
+}
+.chapter.alt .menu-item .tags i.abv {
+  background: var(--raised-2);
+}
+.menu-item .tags i.zero {
+  background: var(--positive);
+  color: var(--bg);
 }
 .menu-item .tags i.reco {
   background: var(--amber);

@@ -2,6 +2,8 @@ import type { Messages } from "@/lib/messages";
 import { fill } from "@/lib/format";
 import { CmsImage } from "@/blocks/components/cms-image";
 import { allergenNumber, usedAllergens } from "./allergens";
+import { ChipMarks } from "./chips";
+import { parseDescription } from "./description";
 import { itemCountText, priceRows, searchText } from "./view-model";
 import type { MenuItem, MenuSection } from "./view-model";
 
@@ -27,7 +29,13 @@ function Item({
 }) {
   const m = messages.menu;
   const prices = priceRows(item, currency, locale);
-  const marks = item.dietary.length > 0 || item.recommended || item.unavailable || item.spicy > 0;
+  const { prose, chips } = parseDescription(item.description);
+  const marks =
+    chips.length > 0 ||
+    item.dietary.length > 0 ||
+    item.recommended ||
+    item.unavailable ||
+    item.spicy > 0;
   return (
     <li
       className="menu-item"
@@ -48,9 +56,10 @@ function Item({
             </span>
           ) : null}
         </p>
-        {item.description ? <p className="d">{item.description}</p> : null}
+        {prose.length > 0 ? <p className="d">{prose.join(" ")}</p> : null}
         {marks ? (
           <p className="tags">
+            <ChipMarks chips={chips} />
             {item.unavailable ? <i className="gone">{m.unavailable}</i> : null}
             {item.recommended ? <i className="reco">{m.recommended}</i> : null}
             {item.spicy > 0 ? <i>{fill(m.spicy, { n: item.spicy })}</i> : null}
