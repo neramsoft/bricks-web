@@ -4,6 +4,7 @@ import { CmsLink } from "./cms-link";
 import { Icon } from "./icon";
 import { Section, SectionHead } from "./section";
 import type { BlockProps } from "./props";
+import { ItemTitle } from "../heading-level";
 
 /** The CMS's four layouts, all drawn as bricks laid with the mortar between them. */
 export function Features({ block }: BlockProps<"features">) {
@@ -29,7 +30,7 @@ export function Features({ block }: BlockProps<"features">) {
               {item.eyebrow ? <p className="eyebrow">{item.eyebrow}</p> : null}
               <Icon name={item.icon} />
               {image ? <CmsImage image={image} sizes="(min-width: 901px) 33vw, 100vw" /> : null}
-              <h3>{item.title}</h3>
+              <ItemTitle hasHeading={Boolean(d.heading)}>{item.title}</ItemTitle>
               {item.text ? <p>{item.text}</p> : null}
               {item.tags && item.tags.length > 0 ? (
                 <span className="tile-tags">

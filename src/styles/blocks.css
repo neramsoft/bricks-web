@@ -197,7 +197,7 @@
 .tile.featured {
   grid-column: span 2;
 }
-.tile h3 {
+.tile :is(h2, h3) {
   font-family: var(--font-display-stack);
   font-weight: 600;
   font-size: 20px;

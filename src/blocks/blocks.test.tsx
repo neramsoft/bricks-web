@@ -41,4 +41,19 @@ describe("Blocks", () => {
     ]);
     expect(html.indexOf("Prvi")).toBeLessThan(html.indexOf("Drugi"));
   });
+
+  describe("heading order", () => {
+    const items = [{ title: "Bašta", text: "Napolju" }];
+    const levels = (html: string) => [...html.matchAll(/<h([1-6])[ >]/g)].map((m) => Number(m[1]));
+
+    it("draws the items of a features block without a heading at h2", () => {
+      expect(levels(render([blockFixture("features", { items })]))).toEqual([2]);
+    });
+
+    it("draws the items of a features block with a heading one level below it", () => {
+      expect(levels(render([blockFixture("features", { heading: "Mjesta", items })]))).toEqual([
+        2, 3,
+      ]);
+    });
+  });
 });

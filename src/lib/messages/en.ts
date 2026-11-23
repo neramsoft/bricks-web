@@ -262,4 +262,14 @@ export const en: Messages = {
       other: "Something went wrong. Try again or call a waiter.",
     },
   },
+  llms: {
+    address: "Address: {address}.",
+    hours: "Opening hours: {hours}.",
+    closedDay: "closed",
+    can: "On the website you can {list}.",
+    canMenu: "browse the menu",
+    canReserve: "book a table",
+    canOrder: "order from your table by scanning its QR code",
+    sitemap: "Sitemap (XML)",
+  },
 };

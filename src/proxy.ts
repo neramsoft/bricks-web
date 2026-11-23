@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { isBotPath, isServedFile } from "@/lib/bot-paths";
 import { goneHtml } from "@/lib/gone-page";
 import { localizedHref, splitPathname } from "@/lib/locale";
 import { messagesFor } from "@/lib/messages";
@@ -8,9 +9,22 @@ import { isUnknownTable, tokenOf } from "@/ordering/table-check";
 // The proxy answers what a cached page render can't: a CMS redirect (301, 302), a gone address
 // (410) and a missing one (a real 404 from /missing, which reports the visit to the CMS's 404
 // log). A live address goes on to the cached catch-all page. The API not answering lets the
-// request through unchanged.
+// request through unchanged. What scanners ask for and the site never serves (`/.well-known/*`,
+// dotfiles, `*.php`, `*.json`, ...) gets a tiny plain 404 first, with no CMS call at all.
 
 const CACHE_SHORT = "public, max-age=0, s-maxage=60";
+
+/** A real 404 without a page: for addresses the site never serves (lib/bot-paths.ts). */
+function plainNotFound(): NextResponse {
+  return new NextResponse("Not found\n", {
+    status: 404,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=60, s-maxage=300",
+      "X-Robots-Tag": "noindex",
+    },
+  });
+}
 
 export async function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
@@ -18,6 +32,9 @@ export async function proxy(request: NextRequest) {
   headers.set("x-site-path", request.nextUrl.pathname);
   const pass = () => NextResponse.next({ request: { headers } });
   if (request.method !== "GET" && request.method !== "HEAD") return pass();
+  if (isBotPath(request.nextUrl.pathname)) return plainNotFound();
+  // The second matcher lets these files in too (they have a bot extension): they are routes.
+  if (isServedFile(request.nextUrl.pathname)) return pass();
 
   // A table's page (/s/<token>) is the app's own: the CMS has no page, redirect or 410 there. Its
   // layout cannot read the query string, so it is handed over for the `lang` of <html>.
@@ -75,10 +92,13 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Pages only: not Next's own files, the API routes, the preview, the thank-you page of a form
-  // post, robots.txt, sitemap.xml and anything with a file extension. Add a route outside the catch-all here (and to
-  // lib/reserved-paths.ts).
+  // The first entry: pages only, not Next's own files, the API routes, the preview, the thank-you
+  // page of a form post, robots.txt, sitemap.xml, llms.txt and anything with a file extension.
+  // Add a route outside the catch-all here (and to lib/reserved-paths.ts). The second entry is
+  // the opposite: the dotfiles and the file kinds the site never serves (lib/bot-paths.ts keeps
+  // the same list), which the proxy answers with a plain 404.
   matcher: [
-    "/((?!_next/|api/|preview/|preview$|missing/|missing$|~form|~order-invalid|robots\\.txt|sitemap\\.xml|.*\\..*).*)",
+    "/((?!_next/|api/|preview/|preview$|missing/|missing$|~form|~order-invalid|robots\\.txt|sitemap\\.xml|llms\\.txt|.*\\..*).*)",
+    "/((?:\\.[^/]+|.*\\.(?:php|php3|php4|php5|php7|phtml|phps|asp|aspx|ashx|asmx|jsp|jspx|cgi|pl|py|sh|exe|dll|env|ini|cfg|conf|config|yml|yaml|toml|json|xml|txt|md|csv|sql|db|sqlite|bak|old|orig|swp|log|zip|gz|tgz|tar|rar|7z|pem|key))(?:/.*)?)",
   ],
 };

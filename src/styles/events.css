@@ -23,7 +23,7 @@
   color: var(--amber);
   font-weight: 600;
 }
-.ev-featured h3 {
+.ev-featured :is(h2, h3) {
   font-family: var(--font-display-stack);
   font-weight: 600;
   font-size: clamp(28px, 3vw, 40px);
@@ -113,7 +113,7 @@
   font-size: 13px;
   margin-top: 4px;
 }
-.ev h4 {
+.ev :is(h3, h4) {
   font-family: var(--font-display-stack);
   font-weight: 600;
   font-size: clamp(22px, 2vw, 28px);
@@ -154,8 +154,7 @@
   padding: 3px 8px;
   background: var(--raised);
 }
-[data-event-status="CANCELLED"] h3,
-[data-event-status="CANCELLED"] h4 {
+[data-event-status="CANCELLED"] :is(h2, h3, h4) {
   text-decoration: line-through;
 }
 @media (max-width: 560px) {
@@ -203,7 +202,7 @@
   gap: 6px;
   flex: 1;
 }
-.venue h3 {
+.venue :is(h2, h3) {
   font-family: var(--font-display-stack);
   font-weight: 700;
   font-size: clamp(26px, 2.4vw, 36px);

@@ -1,6 +1,6 @@
 import { getPaths, type ProbizClient, type PublicPath } from "@probiz/sdk";
 import { normalizePath } from "./locale";
-import { proxyState } from "./proxy-state";
+import { proxyState, STALE_MS } from "./proxy-state";
 
 // The list of every live public address (`GET /v1/public/paths`, docs/decisions/0032), which lets the
 // proxy tell a live address from a missing one without a lookup per address (docs/decisions/0033).
@@ -28,11 +28,20 @@ export function indexPaths(items: readonly PublicPath[]): ReadonlySet<string> {
  */
 export async function livePaths(client: ProbizClient): Promise<ReadonlySet<string> | null> {
   const state = proxyState();
-  const cached = state.paths.get("list");
-  if (cached) return cached;
+  // An expired list still answers while a new one is read in the background.
+  const cached = state.paths.getStale("list", STALE_MS);
+  if (cached) {
+    if (cached.stale && !state.pathsUnavailable.get("down")) void readPaths(client);
+    return cached.value;
+  }
   if (state.pathsUnavailable.get("down")) return null;
+  return readPaths(client);
+}
+
+function readPaths(client: ProbizClient): Promise<ReadonlySet<string> | null> {
+  const state = proxyState();
   const generation = state.generation;
-  const loading = (state.loading ??= (async () => {
+  return (state.loading ??= (async () => {
     try {
       const set = indexPaths(await getPaths(client));
       // A clear in the meantime means the CMS changed something this read may not have seen.
@@ -45,5 +54,4 @@ export async function livePaths(client: ProbizClient): Promise<ReadonlySet<strin
       if (generation === state.generation) state.loading = undefined;
     }
   })());
-  return loading;
 }

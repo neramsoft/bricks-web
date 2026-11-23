@@ -5,7 +5,7 @@ export class TtlCache<V> {
   constructor(
     private readonly ttlMs: number,
     private readonly maxEntries: number,
-    private readonly now: () => number = Date.now,
+    private readonly now: () => number = () => Date.now(),
   ) {}
 
   get(key: string): V | undefined {
@@ -16,6 +16,18 @@ export class TtlCache<V> {
       return undefined;
     }
     return entry.value;
+  }
+
+  /**
+   * The value even when its lifetime has ended (`stale`), for up to `maxStaleMs` more: a reader
+   * that can answer from an old value while it refreshes in the background. Nothing is deleted.
+   */
+  getStale(key: string, maxStaleMs: number): { value: V; stale: boolean } | undefined {
+    const entry = this.entries.get(key);
+    if (!entry) return undefined;
+    const now = this.now();
+    if (entry.expires + maxStaleMs <= now) return undefined;
+    return { value: entry.value, stale: entry.expires <= now };
   }
 
   set(key: string, value: V): void {

@@ -5,6 +5,7 @@ import { intervalsText } from "./hours";
 import { Section, SectionHead } from "./section";
 import type { BlockContext, BlockProps } from "./props";
 import type { ResolvedLocation } from "../types";
+import { ItemTitle } from "../heading-level";
 
 function status(location: ResolvedLocation, ctx: BlockContext) {
   const m = ctx.messages.blocks;
@@ -51,7 +52,7 @@ export function LocationList({ block, ctx }: BlockProps<"locationList">) {
                 </div>
               ) : null}
               <div className="venue-body">
-                <h3>{location.name}</h3>
+                <ItemTitle hasHeading={Boolean(d.heading)}>{location.name}</ItemTitle>
                 <address>
                   {location.address.street}
                   <br />

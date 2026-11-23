@@ -38,4 +38,18 @@ describe("TtlCache", () => {
     cache.clear();
     expect(cache.get("a")).toBeUndefined();
   });
+
+  it("can still give a value after its lifetime, marked stale, for a limited time", () => {
+    let now = 1000;
+    const cache = new TtlCache<string>(100, 10, () => now);
+    cache.set("a", "x");
+    now = 1050;
+    expect(cache.getStale("a", 500)).toEqual({ value: "x", stale: false });
+    now = 1200;
+    expect(cache.getStale("a", 500)).toEqual({ value: "x", stale: true });
+    now = 1600;
+    expect(cache.getStale("a", 500)).toBeUndefined();
+    cache.clear();
+    expect(cache.getStale("a", 500)).toBeUndefined();
+  });
 });
