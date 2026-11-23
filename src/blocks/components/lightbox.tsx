@@ -29,9 +29,15 @@ export interface LightboxLabels {
  * The picture fills its box with `object-fit: contain`, so a click on the bars beside it still
  * hits the `img`: true when the click lies outside the picture itself.
  */
-function isOutsidePicture(img: HTMLImageElement, event: React.MouseEvent): boolean {
+function isOutsidePicture(
+  img: HTMLImageElement,
+  event: React.MouseEvent,
+  known: { width: number; height: number },
+): boolean {
   const box = img.getBoundingClientRect();
-  const { naturalWidth: w, naturalHeight: h } = img;
+  // Before the file has loaded the element has no natural size: the CMS's size has the same ratio.
+  const w = img.naturalWidth || known.width;
+  const h = img.naturalHeight || known.height;
   if (!w || !h) return false;
   const scale = Math.min(box.width / w, box.height / h);
   const width = w * scale;
@@ -164,7 +170,7 @@ export function Lightbox({
         onClick={(event) => {
           // The empty ground around the picture is the backdrop.
           const target = event.target as HTMLElement;
-          if (target instanceof HTMLImageElement && isOutsidePicture(target, event)) {
+          if (target instanceof HTMLImageElement && item && isOutsidePicture(target, event, item)) {
             event.currentTarget.close();
             return;
           }
